@@ -1,0 +1,304 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerAuthSession } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { attendanceCorrectionSchema } from '@/lib/validations/employee';
+
+// GET /api/attendance-corrections - Get attendance correction requests (filtered by role)
+export async function GET(request: NextRequest) {
+    try {
+        const session = await getServerAuthSession();
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const personalOnly = searchParams.get('personal') === 'true';
+
+        const employee = await prisma.employee.findFirst({
+            where: {
+                userId: session.user.id,
+            },
+            include: {
+                department: true,
+            },
+        });
+
+        if (!employee) {
+            return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
+        }
+
+        const isHRMember = employee.department?.name === 'İnsan Kaynakları' || employee.department?.name === 'İK';
+
+        let requests;
+
+        // Filter based on role and department
+        if (!personalOnly && (session.user.role === 'COMPANY_ADMIN' || isHRMember)) {
+            // HR sees all requests for their company (when not just personal)
+            requests = await prisma.attendanceCorrection.findMany({
+                where: {
+                    employee: {
+                        companyId: session.user.companyId,
+                    },
+                },
+                include: {
+                    employee: {
+                        include: {
+                            user: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                },
+                            },
+                            department: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    approvals: {
+                        include: {
+                            approver: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    role: true,
+                                    managedDepts: {
+                                        select: { name: true }
+                                    }
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: 'asc',
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        } else if (!personalOnly && session.user.role === 'MANAGER') {
+            // Managers see their own requests + requests from their department (when not just personal)
+            requests = await prisma.attendanceCorrection.findMany({
+                where: {
+                    OR: [
+                        { employeeId: employee.id },
+                        {
+                            employee: {
+                                departmentId: employee.departmentId || '',
+                            },
+                        },
+                    ],
+                },
+                include: {
+                    employee: {
+                        include: {
+                            user: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                },
+                            },
+                            department: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    approvals: {
+                        include: {
+                            approver: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                    managedDepts: {
+                                        select: { name: true }
+                                    }
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: 'asc',
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        } else {
+            // Employees see only their own requests
+            requests = await prisma.attendanceCorrection.findMany({
+                where: {
+                    employeeId: employee.id,
+                },
+                include: {
+                    employee: {
+                        include: {
+                            user: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                },
+                            },
+                            department: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    approvals: {
+                        include: {
+                            approver: {
+                                select: {
+                                    name: true,
+                                    email: true,
+                                    managedDepts: {
+                                        select: { name: true }
+                                    }
+                                },
+                            },
+                        },
+                        orderBy: {
+                            createdAt: 'asc',
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        }
+
+        return NextResponse.json(requests);
+    } catch (error) {
+        console.error('Error fetching correction requests:', error);
+        return NextResponse.json(
+            { error: 'Failed to fetch requests' },
+            { status: 500 }
+        );
+    }
+}
+
+// POST /api/attendance-corrections - Create new attendance correction request
+export async function POST(request: NextRequest) {
+    try {
+        const session = await getServerAuthSession();
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const validatedData = attendanceCorrectionSchema.parse(body);
+
+        const employee = await prisma.employee.findFirst({
+            where: {
+                userId: session.user.id,
+            },
+            include: {
+                department: {
+                    include: {
+                        manager: true,
+                    },
+                },
+            },
+        });
+
+        if (!employee) {
+            return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
+        }
+
+        // Create correction request
+        const correctionRequest = await prisma.attendanceCorrection.create({
+            data: {
+                employeeId: employee.id,
+                type: validatedData.type,
+                date: new Date(validatedData.date),
+                entryTime: validatedData.entryTime || null,
+                exitTime: validatedData.exitTime || null,
+                reason: validatedData.reason,
+                status: 'PENDING',
+                companyId: session.user.companyId,
+            },
+        });
+
+        // Create approval workflow: Employee -> Manager -> HR
+        const approvals = [];
+
+        // Step 1: Manager approval (if employee has a manager)
+        if (employee.department?.managerId && employee.department.managerId !== employee.userId) {
+            approvals.push({
+                attendanceCorrectionId: correctionRequest.id,
+                approverId: employee.department.managerId,
+                approvalOrder: 1,
+            });
+        }
+
+        // Step 2: HR approval
+        let hrAdminId = null;
+        const hrDept = await prisma.department.findFirst({
+            where: {
+                name: { in: ['İnsan Kaynakları', 'İK'] },
+                companyId: session.user.companyId
+            }
+        });
+
+        if (hrDept?.managerId) {
+            hrAdminId = hrDept.managerId;
+        } else {
+            const firstAdmin = await prisma.user.findFirst({
+                where: {
+                    role: 'COMPANY_ADMIN',
+                    companyId: session.user.companyId,
+                },
+            });
+            hrAdminId = firstAdmin?.id || null;
+        }
+
+        if (hrAdminId &&
+            hrAdminId !== employee.userId &&
+            !approvals.some(a => a.approverId === hrAdminId)
+        ) {
+            approvals.push({
+                attendanceCorrectionId: correctionRequest.id,
+                approverId: hrAdminId,
+                approvalOrder: 2,
+            });
+        }
+
+        // Create all approvals
+        if (approvals.length > 0) {
+            await prisma.approval.createMany({
+                data: approvals as any,
+            });
+
+            // Notify Step 1 approver
+            const firstApproval = approvals.sort((a, b) => a.approvalOrder - b.approvalOrder)[0];
+            if (firstApproval) {
+                await prisma.notification.create({
+                    data: {
+                        userId: firstApproval.approverId,
+                        companyId: session.user.companyId,
+                        title: 'Yeni Giriş/Çıkış Düzeltme Talebi',
+                        message: `${session.user.name} yeni bir düzeltme talebi oluşturdu. Onayınız bekleniyor.`,
+                        link: `/dashboard/hr/attendance-requests`, // We will create this page
+                    }
+                });
+            }
+        }
+
+        return NextResponse.json(correctionRequest, { status: 201 });
+    } catch (error: any) {
+        console.error('Error creating correction request:', error);
+        return NextResponse.json(
+            { error: error.message || 'Failed to create request' },
+            { status: 500 }
+        );
+    }
+}

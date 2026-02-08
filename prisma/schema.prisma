@@ -1,0 +1,348 @@
+// Prisma Schema for HR Management SaaS Platform
+// Multi-tenant architecture with Row-Level Security
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE MODELS
+// ============================================
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String?  @unique
+  plan      String   @default("free") // free, basic, premium, enterprise
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users         User[]
+  departments   Department[]
+  employees     Employee[]
+  leaveRequests        LeaveRequest[]
+  attendanceCorrections AttendanceCorrection[]
+  notifications        Notification[]
+  holidays             Holiday[]
+
+  @@index([domain])
+  @@map("companies")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  role          UserRole  @default(EMPLOYEE)
+  emailVerified DateTime?
+  image         String?
+  companyId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  accounts      Account[]
+  sessions      Session[]
+  employee      Employee?
+  managedDepts  Department[]   @relation("DepartmentManager")
+  approvals             Approval[]
+  notifications         Notification[]
+
+  @@index([email])
+  @@index([companyId])
+  @@index([role])
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN // Platform admin
+  COMPANY_ADMIN // HR admin
+  MANAGER // Department manager
+  EMPLOYEE // Regular employee
+}
+
+// ============================================
+// NEXTAUTH MODELS
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// HR MODELS
+// ============================================
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String
+  managerId String?
+  companyId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  manager   User?      @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: SetNull)
+  employees Employee[]
+
+  @@unique([name, companyId])
+  @@index([companyId])
+  @@map("departments")
+}
+
+model Employee {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  departmentId String?
+  position     String?
+  hireDate     DateTime @default(now())
+  companyId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // NEW: Advanced Leave & Working Days
+  workingDays        Int[] @default([1, 2, 3, 4, 5]) // 1 (Mon) to 7 (Sun)
+  annualLeaveQuota   Int   @default(0)
+  totalLeftLeaveDays Float @default(0)
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leaveRequests LeaveRequest[]
+  salary                Salary?
+  payrolls              Payroll[]
+  attendanceCorrections AttendanceCorrection[]
+
+  @@index([userId])
+  @@index([departmentId])
+  @@index([companyId])
+  @@map("employees")
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  date      DateTime
+  name      String
+  isHalfDay Boolean  @default(false)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([date, companyId])
+  @@map("public_holidays")
+}
+
+model Salary {
+  id         String   @id @default(cuid())
+  employeeId String   @unique
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  baseSalary Float // Gross Salary
+  currency   String   @default("TRY")
+  updatedAt  DateTime @updatedAt
+
+  @@map("salaries")
+}
+
+model Payroll {
+  id                   String   @id @default(cuid())
+  employeeId           String
+  employee             Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month                Int
+  year                 Int
+  grossSalary          Float
+  netSalary            Float
+  sgkEmployee          Float
+  unemployment         Float
+  sgkEmployer          Float    @default(0)
+  unemploymentEmployer Float    @default(0)
+  totalEmployerCost    Float    @default(0)
+  taxRate              Float    @default(0) // Captured bracket rate
+  incomeTax            Float
+  stampTax             Float
+  taxExemption         Float    @default(0) // Minimum wage tax exemption
+  incomeTaxMatrah      Float    @default(0) // NEW: Needed for cumulative bracket calculation
+  calculatedAt         DateTime @default(now())
+
+  @@unique([employeeId, month, year])
+  @@map("payrolls")
+}
+
+model LeaveType {
+  id          String   @id @default(cuid())
+  name        String   @unique // Yıllık İzin, Saatlik İzin, Mazeret, Hastalık, Evlilik, Doğum, Ölüm
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  leaveRequests LeaveRequest[]
+
+  @@map("leave_types")
+}
+
+model LeaveRequest {
+  id          String             @id @default(cuid())
+  employeeId  String
+  leaveTypeId String
+  startDate   DateTime
+  endDate     DateTime
+  actualDays  Float              @default(0) // NEW: Calculated days (excluding weekends/holidays)
+  reason      String?            @db.Text
+  status      LeaveRequestStatus @default(PENDING)
+  companyId   String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Relations
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType LeaveType  @relation(fields: [leaveTypeId], references: [id])
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  approvals Approval[]
+
+  @@index([employeeId])
+  @@index([leaveTypeId])
+  @@index([status])
+  @@index([companyId])
+  @@index([startDate])
+  @@map("leave_requests")
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Approval {
+  id             String         @id @default(cuid())
+  leaveRequestId         String?
+  attendanceCorrectionId String?
+  approverId             String
+  status         ApprovalStatus @default(PENDING)
+  comment        String?        @db.Text
+  approvalOrder  Int // 1 = Manager, 2 = HR
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  leaveRequest         LeaveRequest?         @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  attendanceCorrection AttendanceCorrection? @relation(fields: [attendanceCorrectionId], references: [id], onDelete: Cascade)
+  approver             User                  @relation(fields: [approverId], references: [id])
+
+  @@index([leaveRequestId])
+  @@index([attendanceCorrectionId])
+  @@index([approverId])
+  @@index([status])
+  @@map("approvals")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String   @db.Text
+  link      String?
+  isRead    Boolean  @default(false)
+  companyId String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([companyId])
+  @@map("notifications")
+}
+
+model AttendanceCorrection {
+  id         String           @id @default(cuid())
+  employeeId String
+  type       CorrectionType // ENTRY, EXIT, BOTH
+  date       DateTime // The date of the record to correct
+  entryTime  String? // New entry time (HH:mm)
+  exitTime   String? // New exit time (HH:mm)
+  reason     String           @db.Text
+  status     CorrectionStatus @default(PENDING)
+  companyId  String
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  // Relations
+  employee  Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  approvals Approval[]
+
+  @@index([employeeId])
+  @@index([companyId])
+  @@index([status])
+  @@map("attendance_corrections")
+}
+
+enum CorrectionType {
+  ENTRY
+  EXIT
+  BOTH
+}
+
+enum CorrectionStatus {
+  PENDING
+  MANAGER_APPROVED
+  APPROVED
+  REJECTED
+}

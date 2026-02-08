@@ -1,0 +1,149 @@
+{
+    "common": {
+        "appName": "HR Management System",
+        "welcome": "Welcome",
+        "loading": "Loading...",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "search": "Search",
+        "filter": "Filter",
+        "export": "Export",
+        "import": "Import",
+        "actions": "Actions",
+        "status": "Status",
+        "date": "Date",
+        "name": "Name",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "submit": "Submit",
+        "back": "Back",
+        "next": "Next",
+        "finish": "Finish",
+        "yes": "Yes",
+        "no": "No"
+    },
+    "nav": {
+        "home": "Home",
+        "about": "About",
+        "contact": "Contact",
+        "pricing": "Pricing",
+        "login": "Login",
+        "register": "Register",
+        "dashboard": "Dashboard",
+        "employees": "Employees",
+        "departments": "Departments",
+        "leaves": "Leaves",
+        "attendance": "Attendance",
+        "announcements": "Announcements",
+        "settings": "Settings",
+        "logout": "Logout"
+    },
+    "auth": {
+        "login": {
+            "title": "Login",
+            "subtitle": "Sign in to your account",
+            "emailPlaceholder": "example@company.com",
+            "passwordPlaceholder": "Enter your password",
+            "rememberMe": "Remember Me",
+            "forgotPassword": "Forgot Password",
+            "noAccount": "Don't have an account?",
+            "signUp": "Sign Up",
+            "loginButton": "Login"
+        },
+        "register": {
+            "title": "Register",
+            "subtitle": "Create a new account",
+            "companyName": "Company Name",
+            "companyNamePlaceholder": "Your Company Name",
+            "fullName": "Full Name",
+            "fullNamePlaceholder": "Your Full Name",
+            "emailPlaceholder": "example@company.com",
+            "passwordPlaceholder": "Create a strong password",
+            "confirmPasswordPlaceholder": "Confirm your password",
+            "agreeTerms": "I agree to the terms and conditions",
+            "hasAccount": "Already have an account?",
+            "signIn": "Sign In",
+            "registerButton": "Register"
+        }
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "welcome": "Welcome, {name}",
+        "stats": {
+            "totalEmployees": "Total Employees",
+            "pendingLeaves": "Pending Leaves",
+            "activeEmployees": "Active Employees",
+            "departments": "Departments"
+        }
+    },
+    "employees": {
+        "title": "Employees",
+        "addEmployee": "Add Employee",
+        "editEmployee": "Edit Employee",
+        "deleteEmployee": "Delete Employee",
+        "employeeDetails": "Employee Details",
+        "department": "Department",
+        "position": "Position",
+        "hireDate": "Hire Date",
+        "role": "Role",
+        "active": "Active",
+        "inactive": "Inactive"
+    },
+    "departments": {
+        "title": "Departments",
+        "addDepartment": "Add Department",
+        "editDepartment": "Edit Department",
+        "deleteDepartment": "Delete Department",
+        "manager": "Manager",
+        "employeeCount": "Employee Count"
+    },
+    "leaves": {
+        "title": "Leaves",
+        "newLeaveRequest": "New Leave Request",
+        "leaveType": "Leave Type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "reason": "Reason",
+        "status": {
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected"
+        },
+        "types": {
+            "annual": "Annual Leave",
+            "hourly": "Hourly Leave",
+            "excuse": "Excuse Leave",
+            "sick": "Sick Leave",
+            "marriage": "Marriage Leave",
+            "birth": "Birth Leave",
+            "death": "Death Leave"
+        },
+        "approve": "Approve",
+        "reject": "Reject",
+        "approvalHistory": "Approval History",
+        "comment": "Comment"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "markAsRead": "Mark as Read",
+        "markAllAsRead": "Mark All as Read",
+        "noNotifications": "No notifications"
+    },
+    "errors": {
+        "required": "This field is required",
+        "invalidEmail": "Invalid email address",
+        "passwordMismatch": "Passwords do not match",
+        "minLength": "Must be at least {min} characters",
+        "maxLength": "Must be at most {max} characters",
+        "generic": "An error occurred. Please try again."
+    },
+    "success": {
+        "saved": "Successfully saved",
+        "deleted": "Successfully deleted",
+        "updated": "Successfully updated",
+        "created": "Successfully created"
+    }
+}
