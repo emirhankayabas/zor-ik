@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,9 +46,13 @@ const leaveSchema = z.object({
 
 type LeaveFormValues = z.infer<typeof leaveSchema>;
 
-export default function EditLeavePage() {
+export default function EditLeavePage({
+    params,
+}: {
+    params: Promise<{ locale: string; id: string }>;
+}) {
+    const { locale, id } = use(params);
     const router = useRouter();
-            const id = params?.id as string;
 
     const [isLoading, setIsLoading] = useState(false);
     const [isPageLoading, setIsPageLoading] = useState(true);

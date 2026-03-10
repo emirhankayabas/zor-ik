@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -69,9 +69,13 @@ interface LeaveRequest {
   }[];
 }
 
-export default function LeaveDetailPage() {
-    const router = useRouter();
-    const id = params?.id as string;
+export default function LeaveDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { locale, id } = use(params);
+  const router = useRouter();
 
   const { data: session } = useSession();
   const [request, setRequest] = useState<LeaveRequest | null>(null);

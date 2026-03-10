@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,9 +36,13 @@ import Link from "next/link";
 import { toast } from "sonner";
 import ErrorMessage from "@/components/error-message";
 
-export default function EditEmployeePage() {
+export default function EditEmployeePage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { locale, id } = use(params);
   const router = useRouter();
-      const id = params?.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
