@@ -1,9 +1,6 @@
-﻿import { getLocale } from "next-intl/server";
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default async function Footer() {
-  const locale = await getLocale();
-
   return (
     <footer className="border-t py-12 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

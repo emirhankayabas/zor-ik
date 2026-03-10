@@ -1,5 +1,4 @@
 ﻿import Link from "next/link";
-import { getLocale } from "next-intl/server";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import { LayoutDashboard, LogIn } from "lucide-react";
 import { getServerAuthSession } from "@/lib/auth";
 
 export default async function Header() {
-  const locale = await getLocale();
   const session = await getServerAuthSession();
 
   return (

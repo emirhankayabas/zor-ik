@@ -1,4 +1,4 @@
-import Content from "@/app/[locale]/(home)/Component/Content";
+import Content from "@/app/(home)/Component/Content";
 
 export default async function Page() {
   return <Content />;

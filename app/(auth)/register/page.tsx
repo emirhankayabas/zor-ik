@@ -1,11 +1,11 @@
-import Content from "@/app/[locale]/(auth)/login/Component/Content";
+import Content from "@/app/(auth)/register/Component/Content";
 import { getServerAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
-export default async function LoginPage({ params }: Props) {
+export default async function RegisterPage({ params }: Props) {
   const { locale } = await params;
   const session = await getServerAuthSession();
 
