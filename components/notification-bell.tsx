@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface Notification {
   id: string;
@@ -36,8 +36,6 @@ interface Notification {
 
 export function NotificationBell() {
   const router = useRouter();
-  const params = useParams();
-  const locale = params?.locale || "tr";
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -81,12 +79,7 @@ export function NotificationBell() {
       await markAsRead(n.id);
     }
     if (n.link) {
-      // Localize the link if it's relative and doesn't have the locale prefix
-      const localizedLink =
-        n.link.startsWith("/") && !n.link.startsWith(`/${locale}`)
-          ? `/${locale}${n.link}`
-          : n.link;
-      router.push(localizedLink);
+      router.push(n.link);
     }
   };
 
@@ -208,7 +201,7 @@ export function NotificationBell() {
         </ScrollArea>
         <div className="p-2 border-t bg-muted/50 flex justify-center">
           <Button variant="link" size="sm" className="text-xs text-muted-foreground" asChild>
-            <Link href={`/${locale}/dashboard/notifications`}>Tüm Bildirimleri Gör</Link>
+            <Link href="/dashboard/notifications">Tüm Bildirimleri Gör</Link>
           </Button>
         </div>
       </DropdownMenuContent>

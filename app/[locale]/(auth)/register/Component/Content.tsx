@@ -22,7 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ErrorMessage from "@/components/error-message";
 
 interface Props {
-  locale: string;
+  locale?: string;
 }
 
 export default function Content({ locale }: Props) {
@@ -58,7 +58,7 @@ export default function Content({ locale }: Props) {
         return;
       }
 
-      router.push(`/${locale}/login?registered=true`);
+      router.push(`/login?registered=true`);
     } catch (err) {
       setError("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
@@ -210,7 +210,7 @@ export default function Content({ locale }: Props) {
           <p className="text-sm text-center text-muted-foreground">
             Zaten bir hesabınız var mı?{" "}
             <Link
-              href={`/${locale}/login`}
+              href="/login"
               className="font-bold text-primary hover:underline"
             >
               Giriş Yapın

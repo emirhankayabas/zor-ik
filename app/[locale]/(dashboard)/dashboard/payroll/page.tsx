@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   calculateNetFromGross,
   calculateGrossFromNet,
@@ -58,10 +58,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function PayrollPage() {
-  const params = useParams();
-  const router = useRouter();
-  const locale = params?.locale as string;
-
+    const router = useRouter();
+  
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState(false);

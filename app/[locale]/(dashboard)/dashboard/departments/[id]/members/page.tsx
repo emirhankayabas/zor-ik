@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth";
+﻿import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Users, ArrowLeft, Building2 } from "lucide-react";
 import {
@@ -72,7 +72,7 @@ export default async function ManageMembersPage({
     <div className="flex flex-col gap-6 px-4 pb-12 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/${locale}/dashboard/departments/${department.id}`}>
+          <Link href={`/dashboard/departments/${department.id}`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>

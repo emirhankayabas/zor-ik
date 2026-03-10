@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -64,9 +64,7 @@ type LeaveFormValues = z.infer<typeof leaveSchema>;
 
 export default function NewLeavePage() {
   const router = useRouter();
-  const params = useParams();
-  const locale = params?.locale || "tr";
-  const [isLoading, setIsLoading] = useState(false);
+      const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [leaveTypes, setLeaveTypes] = useState<{ id: string; name: string }[]>(
@@ -138,7 +136,7 @@ export default function NewLeavePage() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push(`/${locale}/dashboard/leaves`);
+        router.push(`/dashboard/leaves`);
         router.refresh();
       }, 1500);
     } catch (err: any) {
@@ -188,7 +186,7 @@ export default function NewLeavePage() {
     <div className="max-w-4xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link href={`/${locale}/dashboard/leaves`}>
+          <Link href={`/dashboard/leaves`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>

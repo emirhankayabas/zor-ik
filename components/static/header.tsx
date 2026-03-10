@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { getLocale } from "next-intl/server";
 
 import { ModeToggle } from "@/components/mode-toggle";
@@ -13,7 +13,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href={`/${locale}`} className="flex items-center gap-2 group">
+        <Link href={``} className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl group-hover:scale-105 transition-transform">
             Z
           </div>
@@ -45,14 +45,14 @@ export default async function Header() {
           <ModeToggle />
           {session ? (
             <Button asChild size="sm" className="gap-2">
-              <Link href={`/${locale}/dashboard`}>
+              <Link href={`/dashboard`}>
                 <LayoutDashboard className="size-4" />
                 Paneli Aç
               </Link>
             </Button>
           ) : (
             <Button asChild size="sm" variant="ghost" className="gap-2">
-              <Link href={`/${locale}/login`}>
+              <Link href={`/login`}>
                 <LogIn className="size-4" />
                 Giriş Yap
               </Link>
@@ -60,7 +60,7 @@ export default async function Header() {
           )}
           {!session && (
             <Button asChild size="sm">
-              <Link href={`/${locale}/register`}>Ücretsiz Başla</Link>
+              <Link href={`/register`}>Ücretsiz Başla</Link>
             </Button>
           )}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -48,9 +48,7 @@ type LeaveFormValues = z.infer<typeof leaveSchema>;
 
 export default function EditLeavePage() {
     const router = useRouter();
-    const params = useParams();
-    const locale = params?.locale || "tr";
-    const id = params?.id as string;
+            const id = params?.id as string;
 
     const [isLoading, setIsLoading] = useState(false);
     const [isPageLoading, setIsPageLoading] = useState(true);
@@ -85,7 +83,7 @@ export default function EditLeavePage() {
                 // Fetch leave request detail
                 const requestRes = await fetch(`/api/leave-requests/${id}`);
                 if (!requestRes.ok) {
-                    router.push(`/${locale}/dashboard/leaves`);
+                    router.push(`/dashboard/leaves`);
                     return;
                 }
                 const requestData = await requestRes.json();
@@ -93,7 +91,7 @@ export default function EditLeavePage() {
                 if (requestData.status !== "PENDING") {
                     setError("Sadece beklemedeki talepler düzenlenebilir.");
                     setTimeout(() => {
-                        router.push(`/${locale}/dashboard/leaves`);
+                        router.push(`/dashboard/leaves`);
                     }, 3000);
                     return;
                 }
@@ -134,7 +132,7 @@ export default function EditLeavePage() {
 
             setSuccess(true);
             setTimeout(() => {
-                router.push(`/${locale}/dashboard/leaves`);
+                router.push(`/dashboard/leaves`);
                 router.refresh();
             }, 1500);
         } catch (err: any) {
@@ -176,7 +174,7 @@ export default function EditLeavePage() {
         <div className="max-w-4xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
                 <Button variant="ghost" asChild>
-                    <Link href={`/${locale}/dashboard/leaves`}>
+                    <Link href={`/dashboard/leaves`}>
                         <ArrowLeft className="size-4" />
                     </Link>
                 </Button>

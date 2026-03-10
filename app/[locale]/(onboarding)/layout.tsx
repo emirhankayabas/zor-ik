@@ -10,7 +10,7 @@ export default function OnboardingLayout({
             {/* Navbar */}
             <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link href="/tr" className="flex items-center gap-2">
+                    <Link href="/" className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-sm">İK</span>
                         </div>
@@ -19,13 +19,13 @@ export default function OnboardingLayout({
 
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/tr/login"
+                            href="/login"
                             className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
                         >
                             Giriş Yap
                         </Link>
                         <Link
-                            href="/tr/register"
+                            href="/register"
                             className="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
                         >
                             Ücretsiz Başla

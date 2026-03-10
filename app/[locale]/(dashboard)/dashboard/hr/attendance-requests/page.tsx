@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+
 import { useSession } from "next-auth/react";
 import {
   Calendar as CalendarIcon,
@@ -75,9 +75,7 @@ interface AttendanceCorrection {
 
 export default function AttendanceApprovalsPage() {
   const { data: session } = useSession();
-  const params = useParams();
-  const locale = params?.locale || "tr";
-
+    
   const [requests, setRequests] = useState<AttendanceCorrection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Building2, Users, User, MoreVertical, ArrowRight } from "lucide-react";
 import {
@@ -48,10 +48,9 @@ interface Department {
 
 interface Props {
   departments: Department[];
-  locale: string;
 }
 
-export default function DepartmentList({ departments, locale }: Props) {
+export default function DepartmentList({ departments }: Props) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -103,14 +102,14 @@ export default function DepartmentList({ departments, locale }: Props) {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
                     <Link
-                      href={`/${locale}/dashboard/departments/${department.id}/edit`}
+                      href={`/dashboard/departments/${department.id}/edit`}
                     >
                       Ayarları Düzenle
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
-                      href={`/${locale}/dashboard/departments/${department.id}/members`}
+                      href={`/dashboard/departments/${department.id}/members`}
                     >
                       Üyeleri Yönet
                     </Link>
@@ -168,7 +167,7 @@ export default function DepartmentList({ departments, locale }: Props) {
             <CardFooter className="mb-2 pt-3">
               <Button size="sm" asChild className="w-full">
                 <Link
-                  href={`/${locale}/dashboard/departments/${department.id}`}
+                  href={`/dashboard/departments/${department.id}`}
                 >
                   <span>Detaylı Analiz</span>
                   <ArrowRight className="size-4 " />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { departmentSchema } from "@/lib/validations/employee";
@@ -35,9 +35,7 @@ import { toast } from "sonner";
 
 export default function EditDepartmentPage() {
   const router = useRouter();
-  const params = useParams();
-  const locale = params?.locale || "tr";
-  const id = params?.id;
+      const id = params?.id;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -80,7 +78,7 @@ export default function EditDepartmentPage() {
           });
         } else {
           toast.error("Departman bilgileri alınamadı");
-          router.push(`/${locale}/dashboard/departments`);
+          router.push(`/dashboard/departments`);
         }
       } catch (err) {
         console.error("Data fetch error:", err);
@@ -109,7 +107,7 @@ export default function EditDepartmentPage() {
 
       if (response.ok) {
         toast.success("Departman başarıyla güncellendi");
-        router.push(`/${locale}/dashboard/departments`);
+        router.push(`/dashboard/departments`);
         router.refresh();
       } else {
         const data = await response.json();
@@ -133,7 +131,7 @@ export default function EditDepartmentPage() {
 
       if (response.ok) {
         toast.success("Departman başarıyla silindi");
-        router.push(`/${locale}/dashboard/departments`);
+        router.push(`/dashboard/departments`);
         router.refresh();
       } else {
         const data = await response.json();
@@ -161,7 +159,7 @@ export default function EditDepartmentPage() {
     <div className="flex flex-col gap-4 max-w-4xl mx-auto pb-12">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/${locale}/dashboard/departments`}>
+          <Link href={`/dashboard/departments`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>

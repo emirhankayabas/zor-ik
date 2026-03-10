@@ -18,12 +18,9 @@ import { NotificationBell } from '@/components/notification-bell';
 
 export default async function DashboardLayout({
     children,
-    params,
 }: {
     children: React.ReactNode;
-    params: Promise<{ locale: string }>;
 }) {
-    const { locale } = await params;
     const session = await getServerAuthSession();
 
     if (!session) {
@@ -42,7 +39,7 @@ export default async function DashboardLayout({
                             <Breadcrumb>
                                 <BreadcrumbList>
                                     <BreadcrumbItem className="hidden md:block">
-                                        <BreadcrumbLink href={`/${locale}/dashboard`} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Yönetim Paneli</BreadcrumbLink>
+                                        <BreadcrumbLink href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Yönetim Paneli</BreadcrumbLink>
                                     </BreadcrumbItem>
                                     <BreadcrumbSeparator className="hidden md:block">
                                         <ChevronRight className="size-3 text-muted-foreground/50" />

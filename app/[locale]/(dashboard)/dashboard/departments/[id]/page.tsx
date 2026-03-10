@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth";
+﻿import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   Building2,
@@ -78,21 +78,21 @@ export default async function DepartmentDetailPage({
     <div className="flex flex-col gap-8 px-4 pb-12 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <Button variant="ghost" asChild>
-          <Link href={`/${locale}/dashboard/departments`}>
+          <Link href={`/dashboard/departments`}>
             <ArrowLeft className="size-4" />
           </Link>
         </Button>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
             <Link
-              href={`/${locale}/dashboard/departments/${department.id}/edit`}
+              href={`/dashboard/departments/${department.id}/edit`}
             >
               Ayarları Düzenle
             </Link>
           </Button>
           <Button size="sm" asChild>
             <Link
-              href={`/${locale}/dashboard/departments/${department.id}/members`}
+              href={`/dashboard/departments/${department.id}/members`}
             >
               Üyeleri Yönet
             </Link>
@@ -220,7 +220,7 @@ export default async function DepartmentDetailPage({
                         className="opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <Link
-                          href={`/${locale}/dashboard/employees/${employee.id}`}
+                          href={`/dashboard/employees/${employee.id}`}
                         >
                           <ExternalLink size={16} />
                         </Link>

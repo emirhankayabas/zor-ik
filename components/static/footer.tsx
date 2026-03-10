@@ -1,4 +1,4 @@
-import { getLocale } from "next-intl/server";
+﻿import { getLocale } from "next-intl/server";
 import Link from "next/link";
 
 export default async function Footer() {
@@ -9,7 +9,7 @@ export default async function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2">
-            <Link href={`/${locale}`} className="flex items-center gap-2 mb-4">
+            <Link href={``} className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
                 Z
               </div>

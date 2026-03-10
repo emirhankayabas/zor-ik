@@ -10,7 +10,7 @@ export default async function LoginPage({ params }: Props) {
   const session = await getServerAuthSession();
 
   if (session) {
-    redirect(`/${locale}/dashboard`);
+    redirect(`/dashboard`);
   }
 
   return <Content locale={locale} />;

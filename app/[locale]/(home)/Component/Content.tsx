@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +15,6 @@ import {
 } from "lucide-react";
 
 export default function Content() {
-  const locale = useLocale();
 
   return (
     <div className="flex flex-col">
@@ -43,13 +41,13 @@ export default function Content() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
               <Button asChild size="lg">
-                <Link href={`/${locale}/register`}>
+                <Link href={`/register`}>
                   Ücretsiz Deneyin
                   <ArrowRight className="ml-2 size-5" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href={`/${locale}/login`}>Giriş Yap</Link>
+                <Link href="/login">Giriş Yap</Link>
               </Button>
             </div>
 
@@ -179,10 +177,10 @@ export default function Content() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <Button asChild size="lg" variant="secondary">
-                <Link href={`/${locale}/register`}>Şimdi Başla</Link>
+                <Link href="/register">Şimdi Başla</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href={`/${locale}/login`}>Bize Ulaşın</Link>
+                <Link href="/login">Bize Ulaşın</Link>
               </Button>
             </div>
           </div>

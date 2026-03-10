@@ -9,9 +9,9 @@ const authConfig = NextAuth({
     strategy: "jwt",
   },
   pages: {
-    signIn: "/tr/login",
-    signOut: "/tr/login",
-    error: "/tr/login",
+    signIn: "/login",
+    signOut: "/login",
+    error: "/login",
   },
   providers: [
     Credentials({

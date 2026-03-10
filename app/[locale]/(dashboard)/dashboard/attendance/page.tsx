@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -62,8 +62,6 @@ interface AttendanceCorrection {
 }
 
 export default function AttendancePage() {
-  const params = useParams();
-  const locale = params?.locale || "tr";
 
   const [requests, setRequests] = useState<AttendanceCorrection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -177,7 +175,7 @@ export default function AttendancePage() {
           </CardDescription>
         </div>
         <Button size="sm" asChild>
-          <Link href={`/${locale}/dashboard/attendance/new`}>
+          <Link href={`/dashboard/attendance/new`}>
             <Plus className="mr-2 size-4" /> Yeni Talep Oluştur
           </Link>
         </Button>
@@ -194,7 +192,7 @@ export default function AttendancePage() {
               Henüz bir giriş/çıkış düzeltme talebi oluşturmadınız.
             </p>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/dashboard/attendance/new`}>
+              <Link href={`/dashboard/attendance/new`}>
                 İlk Talebi Oluştur
               </Link>
             </Button>

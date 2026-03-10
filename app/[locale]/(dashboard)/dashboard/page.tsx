@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth";
+﻿import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   Users,
@@ -26,11 +26,8 @@ import { tr } from "date-fns/locale";
 import Link from "next/link";
 
 export default async function DashboardPage({
-  params,
 }: {
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
   const session = await getServerAuthSession();
 
   if (!session) return null;
@@ -272,7 +269,7 @@ export default async function DashboardPage({
                 Son Taleplerim
               </CardTitle>
               <Button variant="ghost" size="icon" asChild>
-                <Link href={`/${locale}/dashboard/leaves`}>
+                <Link href={`/dashboard/leaves`}>
                   <History className="size-4" />
                 </Link>
               </Button>
@@ -283,7 +280,7 @@ export default async function DashboardPage({
                   recentRequests.map((req) => (
                     <Link
                       key={req.id}
-                      href={`/${locale}/dashboard/leaves/${req.id}`}
+                      href={`/dashboard/leaves/${req.id}`}
                       className="flex items-start gap-2 rounded-lg px-3 py-4 bg-muted/50 transition-colors justify-between"
                     >
                       <div className="space-y-1">
@@ -322,7 +319,7 @@ export default async function DashboardPage({
             {recentRequests.length > 0 && (
               <CardFooter className="py-3">
                 <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/${locale}/dashboard/leaves`}>
+                  <Link href={`/dashboard/leaves`}>
                     Tüm Geçmişi Görüntüle
                   </Link>
                 </Button>

@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth";
+﻿import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import {
@@ -39,13 +39,10 @@ import { EmployeeFilters } from "@/components/employee-filters";
 import { UserRole } from "@prisma/client";
 
 export default async function EmployeesPage({
-  params,
   searchParams,
 }: {
-  params: Promise<{ locale: string }>;
   searchParams: Promise<{ q?: string; dept?: string; role?: string }>;
 }) {
-  const { locale } = await params;
   const { q, dept, role } = await searchParams;
   const session = await getServerAuthSession();
 
@@ -117,7 +114,7 @@ export default async function EmployeesPage({
           </CardDescription>
         </div>
         <Button size="sm" asChild>
-          <Link href={`/${locale}/dashboard/employees/new`}>
+          <Link href={`/dashboard/employees/new`}>
             <UserPlus className="mr-2 size-4" /> Yeni Çalışan Ekle
           </Link>
         </Button>
@@ -140,7 +137,7 @@ export default async function EmployeesPage({
                 Filtreleme kriterlerinize uygun çalışan bulunamadı veya henüz kayıt yok.
               </p>
               <Button variant="outline" size="sm" asChild>
-                <Link href={`/${locale}/dashboard/employees`}>
+                <Link href={`/dashboard/employees`}>
                   Tüm Listeyi Gör
                 </Link>
               </Button>
@@ -209,7 +206,7 @@ export default async function EmployeesPage({
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/${locale}/dashboard/employees/${employee.id}/edit`}
+                              href={`/dashboard/employees/${employee.id}/edit`}
                             >
                               Seçileni Düzenle
                             </Link>
@@ -219,7 +216,7 @@ export default async function EmployeesPage({
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/${locale}/dashboard/leaves`}
+                              href={`/dashboard/leaves`}
                             >
                               İzin Geçmişi
                             </Link>

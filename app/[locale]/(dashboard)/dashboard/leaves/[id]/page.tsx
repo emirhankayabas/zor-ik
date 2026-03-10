@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   ArrowLeft,
@@ -70,10 +70,8 @@ interface LeaveRequest {
 }
 
 export default function LeaveDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const locale = params?.locale || "tr";
-  const id = params?.id as string;
+    const router = useRouter();
+    const id = params?.id as string;
 
   const { data: session } = useSession();
   const [request, setRequest] = useState<LeaveRequest | null>(null);
@@ -138,7 +136,7 @@ export default function LeaveDetailPage() {
       });
 
       if (response.ok) {
-        router.push(`/${locale}/dashboard/leaves`);
+        router.push(`/dashboard/leaves`);
         router.refresh();
       } else {
         const errorData = await response.json();
@@ -243,7 +241,7 @@ export default function LeaveDetailPage() {
             request.employee.userId === session?.user?.id && (
               <>
                 <Button variant="outline" size="sm" asChild className="gap-2">
-                  <Link href={`/${locale}/dashboard/leaves/${id}/edit`}>
+                  <Link href={`/dashboard/leaves/${id}/edit`}>
                     <Pencil className="size-3" /> Düzenle
                   </Link>
                 </Button>

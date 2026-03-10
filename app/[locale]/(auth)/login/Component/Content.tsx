@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ErrorMessage from "@/components/error-message";
 
 interface Props {
-  locale: string;
+  locale?: string;
 }
 
 export default function Content({ locale }: Props) {
@@ -55,7 +55,7 @@ export default function Content({ locale }: Props) {
         return;
       }
 
-      router.push(`/${locale}/dashboard`);
+      router.push(`/dashboard`);
       router.refresh();
     } catch (err) {
       setError("Bir hata oluştu. Lütfen tekrar deneyin.");
@@ -111,7 +111,7 @@ export default function Content({ locale }: Props) {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Şifre</Label>
                 <Link
-                  href={`/${locale}/forgot-password`}
+                  href="/forgot-password"
                   className="text-xs text-primary hover:underline mr-2"
                 >
                   Şifremi Unuttum
@@ -156,7 +156,7 @@ export default function Content({ locale }: Props) {
           <p className="text-sm text-center text-muted-foreground">
             Hesabınız yok mu?{" "}
             <Link
-              href={`/${locale}/register`}
+              href="/register"
               className="font-bold text-primary hover:underline"
             >
               Hemen Kayıt Olun

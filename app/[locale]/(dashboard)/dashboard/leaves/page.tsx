@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+
 import { useSession } from "next-auth/react";
 import {
   Calendar as CalendarIcon,
@@ -71,8 +71,6 @@ interface LeaveRequest {
 
 export default function LeavesPage() {
   const { data: session } = useSession();
-  const params = useParams();
-  const locale = params?.locale || "tr";
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,7 +188,7 @@ export default function LeavesPage() {
           </CardDescription>
         </div>
         <Button size="sm" asChild>
-          <Link href={`/${locale}/dashboard/leaves/new`}>
+          <Link href={`/dashboard/leaves/new`}>
             <Plus className="mr-2 size-4" /> Yeni İzin Talebi
           </Link>
         </Button>
@@ -210,7 +208,7 @@ export default function LeavesPage() {
               bulunamadı.
             </CardDescription>
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${locale}/dashboard/leaves/new`}>
+              <Link href={`/dashboard/leaves/new`}>
                 İlk Talebi Oluştur
               </Link>
             </Button>
@@ -256,14 +254,14 @@ export default function LeavesPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+                            <Link href={`/dashboard/leaves/${request.id}`}>
                               Talep Detayları
                             </Link>
                           </DropdownMenuItem>
                           {request.status === "PENDING" && (
                             <>
                               <DropdownMenuItem asChild>
-                                <Link href={`/${locale}/dashboard/leaves/${request.id}/edit`}>
+                                <Link href={`/dashboard/leaves/${request.id}/edit`}>
                                   Düzenle
                                 </Link>
                               </DropdownMenuItem>
@@ -385,7 +383,7 @@ export default function LeavesPage() {
 
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+                  <Link href={`/dashboard/leaves/${request.id}`}>
                     Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
                   </Link>
                 </Button>

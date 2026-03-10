@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -40,9 +40,7 @@ import { attendanceCorrectionSchema, AttendanceCorrectionInput } from "@/lib/val
 
 export default function NewAttendanceCorrectionPage() {
     const router = useRouter();
-    const params = useParams();
-    const locale = params?.locale || "tr";
-    const [isLoading, setIsLoading] = useState(false);
+            const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
@@ -81,7 +79,7 @@ export default function NewAttendanceCorrectionPage() {
 
             setSuccess(true);
             setTimeout(() => {
-                router.push(`/${locale}/dashboard/attendance`);
+                router.push(`/dashboard/attendance`);
                 router.refresh();
             }, 1500);
         } catch (err: any) {
@@ -115,7 +113,7 @@ export default function NewAttendanceCorrectionPage() {
         <div className="max-w-4xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
                 <Button variant="ghost" asChild>
-                    <Link href={`/${locale}/dashboard/attendance`}>
+                    <Link href={`/dashboard/attendance`}>
                         <ArrowLeft className="size-4" />
                     </Link>
                 </Button>

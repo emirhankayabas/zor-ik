@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -44,7 +44,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
   const pathname = usePathname();
-  const locale = pathname.split("/")[1] || "tr";
 
   const menuGroups = [
     {
@@ -52,7 +51,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       items: [
         {
           title: "Panel",
-          href: `/${locale}/dashboard`,
+          href: `/dashboard`,
           icon: LayoutDashboard,
         },
       ],
@@ -69,17 +68,17 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       items: [
         {
           title: "Çalışanlar",
-          href: `/${locale}/dashboard/employees`,
+          href: `/dashboard/employees`,
           icon: Users,
         },
         {
           title: "Departmanlar",
-          href: `/${locale}/dashboard/departments`,
+          href: `/dashboard/departments`,
           icon: Building2,
         },
         {
           title: "Bordrolar",
-          href: `/${locale}/dashboard/payroll`,
+          href: `/dashboard/payroll`,
           icon: CreditCard,
         },
       ],
@@ -89,12 +88,12 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       items: [
         {
           title: "İzin Taleplerim",
-          href: `/${locale}/dashboard/leaves`,
+          href: `/dashboard/leaves`,
           icon: CalendarDays,
         },
         {
           title: "Düzeltme Taleplerim",
-          href: `/${locale}/dashboard/attendance`,
+          href: `/dashboard/attendance`,
           icon: UserCircle,
         },
       ],
@@ -109,7 +108,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           ? [
             {
               title: "İK Onayları",
-              href: `/${locale}/dashboard/hr/approvals`,
+              href: `/dashboard/hr/approvals`,
               icon: CheckCircle2,
             },
           ]
@@ -121,12 +120,12 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           ? [
             {
               title: "İzin Onayları",
-              href: `/${locale}/dashboard/hr/leave-requests`,
+              href: `/dashboard/hr/leave-requests`,
               icon: CheckCircle2,
             },
             {
               title: "Düzeltme Onayları",
-              href: `/${locale}/dashboard/hr/attendance-requests`,
+              href: `/dashboard/hr/attendance-requests`,
               icon: CheckCircle2,
             },
           ]
@@ -138,7 +137,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       items: [
         {
           title: "Ayarlar",
-          href: `/${locale}/dashboard/settings`,
+          href: `/dashboard/settings`,
           icon: Settings,
         },
       ],
@@ -243,7 +242,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
               >
                 <DropdownMenuItem asChild>
                   <Link
-                    href={`/${locale}/dashboard/settings`}
+                    href={`/dashboard/settings`}
                     className="flex items-center gap-2 cursor-pointer w-full"
                   >
                     <Settings className="size-4" />
@@ -253,7 +252,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                 <SidebarSeparator />
                 <DropdownMenuItem
                   className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-                  onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+                  onClick={() => signOut({ callbackUrl: `/login` })}
                 >
                   <LogOut className="size-4 mr-2" />
                   Çıkış Yap

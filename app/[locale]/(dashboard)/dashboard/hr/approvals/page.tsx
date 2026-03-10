@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+
 import { useSession } from "next-auth/react";
 import {
   Calendar as CalendarIcon,
@@ -68,9 +68,7 @@ interface LeaveRequest {
 
 export default function HRApprovalsPage() {
   const { data: session } = useSession();
-  const params = useParams();
-  const locale = params?.locale || "tr";
-
+    
   const [categorizedRequests, setCategorizedRequests] = useState<{
     pending: LeaveRequest[];
     approved: LeaveRequest[];
@@ -232,7 +230,7 @@ export default function HRApprovalsPage() {
                   {getStatusLabel(request.status)}
                 </Badge>
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+                  <Link href={`/dashboard/leaves/${request.id}`}>
                     <MoreHorizontal className="size-4" />
                   </Link>
                 </Button>
@@ -372,7 +370,7 @@ export default function HRApprovalsPage() {
         </Card>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+            <Link href={`/dashboard/leaves/${request.id}`}>
               Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
             </Link>
           </Button>

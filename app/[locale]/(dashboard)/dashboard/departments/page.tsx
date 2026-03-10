@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth";
+﻿import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Plus, Layers } from "lucide-react";
 import {
@@ -12,11 +12,8 @@ import Link from "next/link";
 import DepartmentList from "./Component/DepartmentList";
 
 export default async function DepartmentsPage({
-  params,
 }: {
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
   const session = await getServerAuthSession();
 
   if (!session) {
@@ -57,7 +54,7 @@ export default async function DepartmentsPage({
           </CardDescription>
         </div>
         <Button asChild>
-          <Link href={`/${locale}/dashboard/departments/new`}>
+          <Link href={`/dashboard/departments/new`}>
             <Plus className="size-4" /> Yeni Departman Oluştur
           </Link>
         </Button>
@@ -73,7 +70,7 @@ export default async function DepartmentsPage({
           </CardContent>
         </Card>
       ) : (
-        <DepartmentList departments={departments} locale={locale} />
+        <DepartmentList departments={departments} />
       )}
     </div>
   );

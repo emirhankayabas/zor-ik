@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+
 import { useSession } from "next-auth/react";
 import {
   Calendar as CalendarIcon,
@@ -79,9 +79,7 @@ interface LeaveRequest {
 
 export default function LeaveApprovalsPage() {
   const { data: session } = useSession();
-  const params = useParams();
-  const locale = params?.locale || "tr";
-
+    
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -230,7 +228,7 @@ export default function LeaveApprovalsPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+                      <Link href={`/dashboard/leaves/${request.id}`}>
                         Talep Detayları
                       </Link>
                     </DropdownMenuItem>
@@ -372,7 +370,7 @@ export default function LeaveApprovalsPage() {
         </Card>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/${locale}/dashboard/leaves/${request.id}`}>
+            <Link href={`/dashboard/leaves/${request.id}`}>
               Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
             </Link>
           </Button>

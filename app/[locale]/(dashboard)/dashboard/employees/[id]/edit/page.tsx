@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { employeeSchema } from "@/lib/validations/employee";
@@ -38,9 +38,7 @@ import ErrorMessage from "@/components/error-message";
 
 export default function EditEmployeePage() {
   const router = useRouter();
-  const params = useParams();
-  const locale = (params?.locale as string) || "tr";
-  const id = params?.id as string;
+      const id = params?.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,7 +86,7 @@ export default function EditEmployeePage() {
           });
         } else {
           toast.error("Çalışan bilgileri alınamadı");
-          router.push(`/${locale}/dashboard/employees`);
+          router.push(`/dashboard/employees`);
         }
       } catch (err) {
         console.error("Data fetch error:", err);
@@ -122,7 +120,7 @@ export default function EditEmployeePage() {
 
       if (response.ok) {
         toast.success("Çalışan başarıyla güncellendi");
-        router.push(`/${locale}/dashboard/employees`);
+        router.push(`/dashboard/employees`);
         router.refresh();
       } else {
         const data = await response.json();
@@ -151,7 +149,7 @@ export default function EditEmployeePage() {
 
       if (response.ok) {
         toast.success("Çalışan başarıyla silindi");
-        router.push(`/${locale}/dashboard/employees`);
+        router.push(`/dashboard/employees`);
         router.refresh();
       } else {
         const data = await response.json();
@@ -180,7 +178,7 @@ export default function EditEmployeePage() {
           asChild
           className="-ml-2 text-muted-foreground hover:text-foreground"
         >
-          <Link href={`/${locale}/dashboard/employees`}>
+          <Link href={`/dashboard/employees`}>
             <ArrowLeft className="mr-2 size-4" /> Geri Dön
           </Link>
         </Button>
