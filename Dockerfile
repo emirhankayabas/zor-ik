@@ -1,9 +1,8 @@
-# ─── Stage 1: Install all dependencies ───────────────────────────────────────
+# ─── Stage 1: Install dependencies ───────────────────────────────────────────
 FROM node:22-alpine AS deps
 WORKDIR /app
 
-# Install openssl for Prisma, upgrade npm to match local version
-RUN apk add --no-cache openssl && npm install -g npm@11
+RUN apk add --no-cache openssl
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
@@ -21,7 +20,6 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Generate Prisma client then build Next.js
 RUN npx prisma generate && npm run build
 
 # ─── Stage 3: Production runner ───────────────────────────────────────────────
@@ -33,15 +31,14 @@ RUN apk add --no-cache openssl
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Run as non-root user
 RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001
 
-COPY --from=builder --chown=nextjs:nodejs /app/public         ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next          ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules   ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/package.json   ./
-COPY --from=builder --chown=nextjs:nodejs /app/prisma         ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/messages        ./messages
+# standalone output — node_modules yerine minimal bundle
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
+COPY --from=builder --chown=nextjs:nodejs /app/prisma           ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/messages         ./messages
 
 COPY --chown=nextjs:nodejs start.sh ./
 RUN chmod +x start.sh

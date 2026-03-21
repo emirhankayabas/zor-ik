@@ -7,6 +7,7 @@ const BASE_PATH = process.env.NODE_ENV === "production" ? "/zor-ik" : "";
 
 const nextConfig: NextConfig = {
   basePath: BASE_PATH,
+  output: "standalone",
 };
 
 export default withNextIntl(nextConfig);
