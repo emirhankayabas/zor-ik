@@ -40,6 +40,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma           ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/messages         ./messages
 
+# prisma CLI standalone'un minimal node_modules'ına dahil değil, elle kopyala
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma        ./node_modules/.bin/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma             ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/engines    ./node_modules/@prisma/engines
+
 COPY --chown=nextjs:nodejs start.sh ./
 RUN chmod +x start.sh
 
