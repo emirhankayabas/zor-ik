@@ -2,8 +2,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 
-# Install openssl for Prisma
-RUN apk add --no-cache openssl
+# Install openssl for Prisma, upgrade npm to match local version
+RUN apk add --no-cache openssl && npm install -g npm@11
 
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
