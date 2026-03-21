@@ -24,7 +24,8 @@
       "Bash(git check-ignore:*)",
       "Bash(head -3 \"app/\\(dashboard\\)/dashboard/attendance/page.tsx\")",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
