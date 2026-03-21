@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
         });
 
         const isHR = user?.role === 'COMPANY_ADMIN' ||
+            user?.role === 'SUPER_ADMIN' ||
             user?.employee?.department?.name === 'İK' ||
             user?.employee?.department?.name === 'İnsan Kaynakları';
 

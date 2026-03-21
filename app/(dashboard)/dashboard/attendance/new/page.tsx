@@ -1,11 +1,11 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    Calendar,
     ArrowLeft,
     CheckCircle2,
     Loader2,
@@ -18,7 +18,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -36,13 +35,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import ErrorMessage from "@/components/error-message";
-import { attendanceCorrectionSchema, AttendanceCorrectionInput } from "@/lib/validations/employee";
+import { getAttendanceCorrectionSchema, AttendanceCorrectionInput } from "@/lib/validations/employee";
+import { toLocalDateString } from "@/lib/status-helpers";
+import { useTranslations } from "next-intl";
 
 export default function NewAttendanceCorrectionPage() {
+    const t = useTranslations("attendance");
+    const tCommon = useTranslations("common");
+    const tValidation = useTranslations("validation");
     const router = useRouter();
-            const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
     const {
         register,
@@ -51,7 +56,7 @@ export default function NewAttendanceCorrectionPage() {
         watch,
         formState: { errors },
     } = useForm<AttendanceCorrectionInput>({
-        resolver: zodResolver(attendanceCorrectionSchema),
+        resolver: zodResolver(getAttendanceCorrectionSchema(tValidation)),
         defaultValues: {
             type: "BOTH",
         }
@@ -59,12 +64,34 @@ export default function NewAttendanceCorrectionPage() {
 
     const correctionType = watch("type");
 
+    // Fetch employee's working days
+    useEffect(() => {
+        fetch(apiUrl("/api/employees/me"))
+            .then((r) => (r.ok ? r.json() : null))
+            .then((emp) => {
+                if (emp?.workingDays && Array.isArray(emp.workingDays)) {
+                    setWorkingDays(emp.workingDays);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    // Disable non-working days in the date picker
+    // JS Date.getDay(): 0=Sunday, 1=Monday, ... 6=Saturday
+    const isDisabledDay = useCallback(
+        (date: Date) => {
+            const dayOfWeek = date.getDay();
+            return !workingDays.includes(dayOfWeek);
+        },
+        [workingDays],
+    );
+
     const onSubmit = async (data: AttendanceCorrectionInput) => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await fetch("/api/attendance-corrections", {
+            const response = await fetch(apiUrl("/api/attendance-corrections"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
@@ -73,13 +100,13 @@ export default function NewAttendanceCorrectionPage() {
             if (!response.ok) {
                 const result = await response.json();
                 throw new Error(
-                    result.error || "Talep oluşturulurken bir hata oluştu",
+                    result.error || t("createError"),
                 );
             }
 
             setSuccess(true);
             setTimeout(() => {
-                router.push(`/dashboard/attendance`);
+                router.push("/dashboard/attendance");
                 router.refresh();
             }, 1500);
         } catch (err: any) {
@@ -98,10 +125,10 @@ export default function NewAttendanceCorrectionPage() {
                             <CheckCircle2 className="size-8" />
                         </div>
                         <h2 className="text-2xl font-black text-foreground">
-                            Talep Gönderildi!
+                            {t("requestSent")}
                         </h2>
                         <p className="text-muted-foreground font-medium">
-                            Giriş/çıkış düzeltme talebiniz onay sürecine alındı. Yönlendiriliyorsunuz...
+                            {t("requestSentDesc")}
                         </p>
                     </CardContent>
                 </Card>
@@ -113,7 +140,7 @@ export default function NewAttendanceCorrectionPage() {
         <div className="max-w-4xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
                 <Button variant="ghost" asChild>
-                    <Link href={`/dashboard/attendance`}>
+                    <Link href="/dashboard/attendance">
                         <ArrowLeft className="size-4" />
                     </Link>
                 </Button>
@@ -121,10 +148,10 @@ export default function NewAttendanceCorrectionPage() {
 
             <div className="space-y-2">
                 <CardTitle className="text-xl mb-0.5 font-medium">
-                    Yeni Giriş/Çıkış Düzeltme Talebi
+                    {t("newTitle")}
                 </CardTitle>
                 <CardDescription>
-                    Kart okutma veya basma işlemini yapamadığınız durumlar için düzeltme talebi oluşturun.
+                    {t("newSubtitle")}
                 </CardDescription>
             </div>
 
@@ -133,27 +160,27 @@ export default function NewAttendanceCorrectionPage() {
                     <CardHeader className="flex items-center gap-x-4">
                         <UserCheck className="size-5 text-primary" />
                         <div>
-                            <CardTitle>Talep Detayları</CardTitle>
+                            <CardTitle>{t("requestDetails")}</CardTitle>
                             <CardDescription>
-                                Tarih, saat ve düzeltme tipini belirtin.
+                                {t("requestDetailsDesc")}
                             </CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent className="pb-4 space-y-6 mt-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="type">Düzeltme Tipi *</Label>
+                                <Label htmlFor="type">{t("correctionType")} *</Label>
                                 <Select
                                     defaultValue="BOTH"
                                     onValueChange={(value) => setValue("type", value as any)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Tip Seçiniz" />
+                                        <SelectValue placeholder={t("selectType")} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="ENTRY">Sadece Giriş</SelectItem>
-                                        <SelectItem value="EXIT">Sadece Çıkış</SelectItem>
-                                        <SelectItem value="BOTH">Giriş ve Çıkış</SelectItem>
+                                        <SelectItem value="ENTRY">{t("entryOnly")}</SelectItem>
+                                        <SelectItem value="EXIT">{t("exitOnly")}</SelectItem>
+                                        <SelectItem value="BOTH">{t("entryAndExit")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.type && (
@@ -162,14 +189,18 @@ export default function NewAttendanceCorrectionPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="date">Tarih *</Label>
+                                <Label htmlFor="date">{tCommon("date")} *</Label>
                                 <div className="relative">
                                     <DatePicker
                                         date={watch("date") ? new Date(watch("date")) : undefined}
-                                        setDate={(date) => setValue("date", date ? date.toISOString().split("T")[0] : "")}
-                                        placeholder="Seçiniz"
+                                        setDate={(date) => setValue("date", date ? toLocalDateString(date) : "")}
+                                        placeholder={tCommon("selectDate")}
+                                        disabledDays={isDisabledDay}
                                     />
                                 </div>
+                                <p className="text-[10px] text-muted-foreground italic">
+                                    {t("workingDaysOnly")}
+                                </p>
                                 {errors.date && (
                                     <ErrorMessage>{errors.date.message}</ErrorMessage>
                                 )}
@@ -179,7 +210,7 @@ export default function NewAttendanceCorrectionPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {(correctionType === "ENTRY" || correctionType === "BOTH") && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="entryTime">Giriş Saati *</Label>
+                                    <Label htmlFor="entryTime">{t("entryTime")} *</Label>
                                     <div className="relative">
                                         <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0 text-muted-foreground">
                                             <Clock size="16" />
@@ -199,7 +230,7 @@ export default function NewAttendanceCorrectionPage() {
 
                             {(correctionType === "EXIT" || correctionType === "BOTH") && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="exitTime">Çıkış Saati *</Label>
+                                    <Label htmlFor="exitTime">{t("exitTime")} *</Label>
                                     <div className="relative">
                                         <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0 text-muted-foreground">
                                             <Clock size="16" />
@@ -219,11 +250,11 @@ export default function NewAttendanceCorrectionPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="reason">Talep Gerekçesi *</Label>
+                            <Label htmlFor="reason">{tCommon("reason")} *</Label>
                             <Textarea
                                 {...register("reason")}
                                 id="reason"
-                                placeholder="Örn: Kartımı evde unutmam sebebiyle giriş yapamadım..."
+                                placeholder={t("reasonPlaceholder")}
                                 className="min-h-30"
                             />
                             {errors.reason && (
@@ -235,14 +266,14 @@ export default function NewAttendanceCorrectionPage() {
 
                 {error && (
                     <Alert variant="destructive">
-                        <AlertTitle>Hata Oluştu</AlertTitle>
+                        <AlertTitle>{tCommon("errorOccurred")}</AlertTitle>
                         <AlertDescription className="mt-1">{error}</AlertDescription>
                     </Alert>
                 )}
 
                 <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => router.back()}>
-                        Vazgeç
+                        {tCommon("cancel")}
                     </Button>
                     <Button type="submit" disabled={isLoading} className="gap-2">
                         {isLoading ? (
@@ -250,7 +281,7 @@ export default function NewAttendanceCorrectionPage() {
                         ) : (
                             <>
                                 <Send className="h-4 w-4" />
-                                Talebi Gönder
+                                {t("sendRequest")}
                             </>
                         )}
                     </Button>

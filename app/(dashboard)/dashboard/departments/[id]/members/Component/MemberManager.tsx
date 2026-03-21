@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CardDescription } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 interface Employee {
   id: string;
@@ -43,6 +45,8 @@ export default function MemberManager({
   locale,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("departments");
+  const tCommon = useTranslations("common");
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
@@ -58,7 +62,7 @@ export default function MemberManager({
   ) => {
     setIsLoading(employeeId);
     try {
-      const response = await fetch(`/api/employees/${employeeId}`, {
+      const response = await fetch(apiUrl(`/api/employees/${employeeId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,13 +71,13 @@ export default function MemberManager({
       });
 
       if (response.ok) {
-        toast.success(action === "add" ? "Üye eklendi" : "Üye çıkarıldı");
+        toast.success(action === "add" ? t("addSuccess") : t("removeSuccess"));
         router.refresh();
       } else {
-        toast.error("İşlem başarısız oldu");
+        toast.error(tCommon("errorOccurred"));
       }
     } catch (error) {
-      toast.error("Bağlantı hatası");
+      toast.error(tCommon("connectionError"));
     } finally {
       setIsLoading(null);
     }
@@ -87,9 +91,9 @@ export default function MemberManager({
     <div>
       <div>
         <div className="flex items-center justify-between space-y-2">
-          <CardDescription>Arama & Filtreleme</CardDescription>
+          <CardDescription>{t("searchFilter")}</CardDescription>
           <Badge variant="outline">
-            {filteredEmployees.length} Çalışan Bulundu
+            {t("employeeFound", { count: filteredEmployees.length })}
           </Badge>
         </div>
         <div className="relative">
@@ -98,7 +102,7 @@ export default function MemberManager({
           </span>
 
           <Input
-            placeholder="İsim veya e-posta ile ara..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -117,7 +121,7 @@ export default function MemberManager({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 pb-4">
         <div className="space-y-3">
           <h3 className="font-bold text-sm flex items-center gap-2">
-            <User size={16} className="text-primary" /> Mevcut Üyeler (
+            <User size={16} className="text-primary" /> {t("currentMembers")} (
             {currentMembers.length})
           </h3>
           <div className="space-y-2 bg-muted/20 p-2 rounded-2xl border border-dashed min-h-75">
@@ -125,7 +129,7 @@ export default function MemberManager({
               <div className="h-full flex flex-col items-center justify-center opacity-40 py-20">
                 <UserMinus size={32} className="mb-2" />
                 <p className="text-xs font-bold uppercase tracking-widest text-center">
-                  Üye Bulunmuyor
+                  {t("noMembers")}
                 </p>
               </div>
             ) : (
@@ -170,7 +174,7 @@ export default function MemberManager({
 
         <div className="space-y-3">
           <h3 className="font-bold text-sm flex items-center gap-2">
-            <UserPlus size={16} className="text-primary" /> Diğer Çalışanlar (
+            <UserPlus size={16} className="text-primary" /> {t("otherEmployees")} (
             {
               filteredEmployees.filter(
                 (emp) => emp.departmentId !== department.id,
@@ -185,7 +189,7 @@ export default function MemberManager({
               <div className="h-full flex flex-col items-center justify-center opacity-40 py-20">
                 <Check size={32} className="mb-2" />
                 <p className="text-xs font-bold uppercase tracking-widest text-center">
-                  Herkes Atandı
+                  {t("everyoneAssigned")}
                 </p>
               </div>
             ) : (
@@ -207,7 +211,7 @@ export default function MemberManager({
                           {emp.user.name}
                           {emp.departmentId && (
                             <span className="ml-2 text-[8px] font-black uppercase px-1.5 py-0.5 bg-muted rounded text-muted-foreground">
-                              Başka Birimde
+                              {t("anotherDepartment")}
                             </span>
                           )}
                         </p>

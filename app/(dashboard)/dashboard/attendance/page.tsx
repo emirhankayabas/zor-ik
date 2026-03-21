@@ -1,8 +1,18 @@
-﻿"use client";
+"use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+import { useTranslations } from "next-intl";
+import {
+  getStatusStyle,
+  getStatusLabel,
+  getStatusIcon,
+  formatDateLocale,
+} from "@/lib/status-helpers";
+import { toast } from "sonner";
+import { useLocale } from "next-intl";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -12,11 +22,8 @@ import {
   MoreHorizontal,
   Info,
   Loader2,
-  AlertCircle,
   ArrowRight,
-  ChevronDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -51,6 +58,7 @@ interface AttendanceCorrection {
     status: string;
     approvalOrder: number;
     approverId: string;
+    comment: string | null;
     approver: {
       id: string;
       name: string;
@@ -62,6 +70,11 @@ interface AttendanceCorrection {
 }
 
 export default function AttendancePage() {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
+  const tRoles = useTranslations("roles");
+  const locale = useLocale();
 
   const [requests, setRequests] = useState<AttendanceCorrection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +86,7 @@ export default function AttendancePage() {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch("/api/attendance-corrections?personal=true");
+      const response = await fetch(apiUrl("/api/attendance-corrections?personal=true"));
       if (response.ok) {
         const data = await response.json();
         setRequests(data);
@@ -86,12 +99,12 @@ export default function AttendancePage() {
   };
 
   const handleDelete = async (requestId: string) => {
-    if (!confirm("Bu düzeltme talebini iptal etmek istediğinize emin misiniz?"))
+    if (!confirm(t("cancelConfirm")))
       return;
 
     setActionLoading(requestId);
     try {
-      const response = await fetch(`/api/attendance-corrections/${requestId}`, {
+      const response = await fetch(apiUrl(`/api/attendance-corrections/${requestId}`), {
         method: "DELETE",
       });
 
@@ -99,58 +112,13 @@ export default function AttendancePage() {
         await fetchRequests();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "İşlem başarısız oldu");
+        toast.error(errorData.error || t("actionFailed"));
       }
     } catch (error) {
       console.error("Failed to delete request:", error);
-      alert("Bir hata oluştu");
+      toast.error(tCommon("errorOccurred"));
     } finally {
       setActionLoading(null);
-    }
-  };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none";
-      case "MANAGER_APPROVED":
-        return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-none";
-      case "APPROVED":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none";
-      case "REJECTED":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-none";
-      default:
-        return "bg-muted text-muted-foreground border-none";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Beklemede";
-      case "MANAGER_APPROVED":
-        return "Yönetici Onayladı";
-      case "APPROVED":
-        return "Onaylandı";
-      case "REJECTED":
-        return "Reddedildi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="size-3 mr-1" />;
-      case "MANAGER_APPROVED":
-        return <CheckCircle2 className="size-3 mr-1" />;
-      case "APPROVED":
-        return <CheckCircle2 className="size-3 mr-1" />;
-      case "REJECTED":
-        return <XCircle className="size-3 mr-1" />;
-      default:
-        return null;
     }
   };
 
@@ -168,15 +136,15 @@ export default function AttendancePage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <CardTitle className="text-xl mb-0.5 font-medium">
-            Giriş/Çıkış Düzeltme Taleplerim
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Unutulan veya hatalı kart işlemleriniz için oluşturduğunuz talepler.
+            {t("subtitle")}
           </CardDescription>
         </div>
         <Button size="sm" asChild>
           <Link href={`/dashboard/attendance/new`}>
-            <Plus className="mr-2 size-4" /> Yeni Talep Oluştur
+            <Plus className="mr-2 size-4" /> {t("newRequest")}
           </Link>
         </Button>
       </div>
@@ -187,13 +155,13 @@ export default function AttendancePage() {
             <div className="size-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
               <CalendarIcon className="size-8 text-muted-foreground opacity-30" />
             </div>
-            <h3 className="text-xl font-bold mb-2">Talep Bulunmuyor</h3>
+            <h3 className="text-xl font-bold mb-2">{t("noRequests")}</h3>
             <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-              Henüz bir giriş/çıkış düzeltme talebi oluşturmadınız.
+              {t("noRequestsDesc")}
             </p>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dashboard/attendance/new`}>
-                İlk Talebi Oluştur
+                {tCommon("createFirst")}
               </Link>
             </Button>
           </CardContent>
@@ -211,25 +179,21 @@ export default function AttendancePage() {
                       </div>
                       <div className="space-y-0.5">
                         <CardTitle>
-                          {new Date(request.date).toLocaleDateString("tr-TR", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })}
+                          {formatDateLocale(request.date, locale)}
                         </CardTitle>
                         <CardDescription className="text-xs">
                           {request.type === "ENTRY"
-                            ? "Giriş Düzeltme"
+                            ? t("entryCorrection")
                             : request.type === "EXIT"
-                              ? "Çıkış Düzeltme"
-                              : "Giriş ve Çıkış Düzeltme"}
+                              ? t("exitCorrection")
+                              : t("entryExitCorrection")}
                         </CardDescription>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 self-end sm:self-center">
                       <Badge className={`${getStatusStyle(request.status)}`}>
                         {getStatusIcon(request.status)}
-                        {getStatusLabel(request.status)}
+                        {getStatusLabel(request.status, tStatus)}
                       </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -247,7 +211,7 @@ export default function AttendancePage() {
                               {actionLoading === request.id ? (
                                 <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                               ) : null}
-                              Talebi İptal Et
+                              {t("cancelRequest")}
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem disabled className="text-muted-foreground text-xs italic">
@@ -269,7 +233,7 @@ export default function AttendancePage() {
                               <Clock className="size-5" />
                             </div>
                             <div>
-                              <CardDescription>Giriş Saati</CardDescription>
+                              <CardDescription>{t("entryTime")}</CardDescription>
                               <p className="text-sm font-bold">
                                 {request.entryTime}
                               </p>
@@ -285,7 +249,7 @@ export default function AttendancePage() {
                               <Clock className="size-5" />
                             </div>
                             <div>
-                              <CardDescription>Çıkış Saati</CardDescription>
+                              <CardDescription>{t("exitTime")}</CardDescription>
                               <p className="text-sm font-bold">
                                 {request.exitTime}
                               </p>
@@ -296,7 +260,7 @@ export default function AttendancePage() {
                       <div className="flex items-start gap-4">
                         <Info className="size-4 text-primary mt-0.5 opacity-50" />
                         <div>
-                          <CardDescription>Talep Gerekçesi</CardDescription>
+                          <CardDescription>{tCommon("reason")}</CardDescription>
                           <CardDescription className="text-foreground mt-1 text-sm">
                             "{request.reason}"
                           </CardDescription>
@@ -306,7 +270,7 @@ export default function AttendancePage() {
 
                     <div className="lg:col-span-4 border-l pl-8 space-y-6">
                       <div>
-                        <CardTitle className="text-sm">Onay Akışı</CardTitle>
+                        <CardTitle className="text-sm">{tCommon("approvalFlow")}</CardTitle>
                         <div className="space-y-6 mt-4">
                           {request.approvals
                             .sort((a, b) => a.approvalOrder - b.approvalOrder)
@@ -346,13 +310,18 @@ export default function AttendancePage() {
                                       ?.name ||
                                       (approval.approver.role ===
                                         "COMPANY_ADMIN"
-                                        ? "İK Yöneticisi"
-                                        : "Birim Yöneticisi")}{" "}
+                                        ? tRoles("hrManager")
+                                        : tRoles("unitManager"))}{" "}
                                     ·{" "}
                                     {approval.status === "PENDING"
-                                      ? "Bekliyor"
-                                      : "İşlendi"}
+                                      ? tStatus("pending")
+                                      : tStatus("processed")}
                                   </p>
+                                  {approval.comment && (
+                                    <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                                      &quot;{approval.comment}&quot;
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             ))}

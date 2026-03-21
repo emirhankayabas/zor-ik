@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
-import { departmentSchema } from '@/lib/validations/employee';
+import { getDepartmentSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 
 export async function GET(request: NextRequest) {
     try {
@@ -33,8 +34,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(departments);
     } catch (error: any) {
         console.error('Get departments error:', error);
+        const tDepartments = await getTranslations('departments');
         return NextResponse.json(
-            { error: 'Departmanlar alınırken bir hata oluştu' },
+            { error: tDepartments('fetchError') || 'Departmanlar alınırken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -43,10 +45,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const companyId = await getCompanyId();
+        const tValidation = await getTranslations('validation');
         const body = await request.json();
 
         // Validate input
-        const validatedData = departmentSchema.parse(body);
+        const validatedData = getDepartmentSchema(tValidation).parse(body);
 
         // Create department
         const department = await prisma.department.create({
@@ -69,15 +72,16 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error('Create department error:', error);
 
+        const tDepartmentsCatch = await getTranslations('departments');
         if (error.name === 'ZodError') {
             return NextResponse.json(
-                { error: 'Geçersiz form verileri' },
+                { error: tDepartmentsCatch('invalidData') || 'Geçersiz form verileri' },
                 { status: 400 }
             );
         }
 
         return NextResponse.json(
-            { error: 'Departman oluşturulurken bir hata oluştu' },
+            { error: tDepartmentsCatch('createError') || 'Departman oluşturulurken bir hata oluştu' },
             { status: 500 }
         );
     }

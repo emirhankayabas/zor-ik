@@ -1,4 +1,5 @@
-﻿"use client";
+"use client";
+import { apiUrl } from "@/lib/api";
 
 import { Building2, Users, User, MoreVertical, ArrowRight } from "lucide-react";
 import {
@@ -23,6 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +54,8 @@ interface Props {
 
 export default function DepartmentList({ departments }: Props) {
   const router = useRouter();
+  const t = useTranslations("departments");
+  const tCommon = useTranslations("common");
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -60,19 +64,19 @@ export default function DepartmentList({ departments }: Props) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/departments/${deleteId}`, {
+      const response = await fetch(apiUrl(`/api/departments/${deleteId}`), {
         method: "DELETE",
       });
 
       if (response.ok) {
-        toast.success("Departman başarıyla kapatıldı");
+        toast.success(t("deleteSuccess"));
         router.refresh();
       } else {
         const result = await response.json();
-        toast.error(result.error || "Departman kapatılırken bir hata oluştu");
+        toast.error(result.error || t("deleteError"));
       }
     } catch (error) {
-      toast.error("Bir hata oluştu");
+      toast.error(tCommon("errorOccurred"));
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
@@ -104,19 +108,19 @@ export default function DepartmentList({ departments }: Props) {
                     <Link
                       href={`/dashboard/departments/${department.id}/edit`}
                     >
-                      Ayarları Düzenle
+                      {t("editSettings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link
                       href={`/dashboard/departments/${department.id}/members`}
                     >
-                      Üyeleri Yönet
+                      {t("manageMembers")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setDeleteId(department.id)}>
-                    Departmanı Kapat
+                    {t("deleteDepartment")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -128,14 +132,14 @@ export default function DepartmentList({ departments }: Props) {
                     <div className="size-8 bg-primary/10 text-primary rounded-full flex items-center justify-center">
                       <Users className="size-4" />
                     </div>
-                    <span className="text-xs font-bold">Aktif Takım</span>
+                    <span className="text-xs font-bold">{t("activeTeam")}</span>
                   </div>
-                  <Badge>{department._count.employees} Üye</Badge>
+                  <Badge>{department._count.employees} {tCommon("person")}</Badge>
                 </div>
 
                 <div className="p-3 border rounded-lg bg-muted/5">
                   <CardTitle className="text-xs mb-2">
-                    Departman Yöneticisi
+                    {t("departmentManager")}
                   </CardTitle>
                   {department.manager ? (
                     <div className="flex items-center gap-3">
@@ -157,7 +161,7 @@ export default function DepartmentList({ departments }: Props) {
                     <div className="flex items-center gap-2 text-muted-foreground ">
                       <User size="14" />
                       <span className="text-xs font-medium">
-                        Yönetici Atanmamış
+                        {t("managerNotAssigned")}
                       </span>
                     </div>
                   )}
@@ -169,7 +173,7 @@ export default function DepartmentList({ departments }: Props) {
                 <Link
                   href={`/dashboard/departments/${department.id}`}
                 >
-                  <span>Detaylı Analiz</span>
+                  <span>{t("detailedAnalysis")}</span>
                   <ArrowRight className="size-4 " />
                 </Link>
               </Button>
@@ -184,17 +188,15 @@ export default function DepartmentList({ departments }: Props) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Emin misiniz?</AlertDialogTitle>
+            <AlertDialogTitle>{tCommon("confirm")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu departmanı kapatmak istediğinize emin misiniz? Bu işlem geri
-              alınamaz. Departmanda çalışan personeller varsa önce onları başka
-              bir departmana taşımanız gerekir.
+              {t("deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? "Kapatılıyor..." : "Departmanı Kapat"}
+              {isDeleting ? tCommon("saving") : t("deleteDepartment")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

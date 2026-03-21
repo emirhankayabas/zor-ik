@@ -1,44 +1,62 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Department validation
-export const departmentSchema = z.object({
-    name: z.string().min(2, 'Departman adı en az 2 karakter olmalıdır'),
+export const getDepartmentSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().min(2, t("departmentNameMin")),
     managerId: z.string().optional(),
-});
+  });
 
-export type DepartmentInput = z.infer<typeof departmentSchema>;
+export type DepartmentInput = z.infer<ReturnType<typeof getDepartmentSchema>>;
 
 // Employee validation
-export const employeeSchema = z.object({
-    name: z.string().min(2, 'Ad soyad en az 2 karakter olmalıdır'),
-    email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-    password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
-    position: z.string().min(2, 'Pozisyon en az 2 karakter olmalıdır'),
+export const getEmployeeSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().min(2, t("nameMin")),
+    email: z.string().email(t("invalidEmail")),
+    password: z.string().min(6, t("passwordMin")),
+    position: z.string().min(2, t("positionMin")),
     departmentId: z.string().optional(),
-    role: z.enum(['EMPLOYEE', 'MANAGER', 'COMPANY_ADMIN']),
+    role: z.enum(["EMPLOYEE", "MANAGER", "COMPANY_ADMIN"]),
     hireDate: z.string().optional(),
     workingDays: z.array(z.number()).optional(),
-});
+  });
 
-export type EmployeeInput = z.infer<typeof employeeSchema>;
+export type EmployeeInput = z.infer<ReturnType<typeof getEmployeeSchema>>;
 
 // Leave Request validation
-export const leaveRequestSchema = z.object({
-    leaveTypeId: z.string().min(1, 'İzin türü seçiniz'),
-    startDate: z.string().min(1, 'Başlangıç tarihi seçiniz'),
-    endDate: z.string().min(1, 'Bitiş tarihi seçiniz'),
-    reason: z.string().min(5, 'Açıklama en az 5 karakter olmalıdır'),
-});
+export const getLeaveRequestSchema = (t: (key: string) => string) =>
+  z.object({
+    leaveTypeId: z.string().min(1, t("leaveTypeRequired")),
+    startDate: z.string().min(1, t("startDateRequired")),
+    endDate: z.string().min(1, t("endDateRequired")),
+    reason: z.string().min(5, t("reasonMin")),
+  });
 
-export type LeaveRequestInput = z.infer<typeof leaveRequestSchema>;
+export type LeaveRequestInput = z.infer<ReturnType<typeof getLeaveRequestSchema>>;
 
 // Attendance Correction validation
-export const attendanceCorrectionSchema = z.object({
-    type: z.enum(['ENTRY', 'EXIT', 'BOTH']),
-    date: z.string().min(1, 'Tarih seçiniz'),
+export const getAttendanceCorrectionSchema = (t: (key: string) => string) =>
+  z.object({
+    type: z.enum(["ENTRY", "EXIT", "BOTH"]),
+    date: z.string().min(1, t("dateRequired")),
     entryTime: z.string().optional(),
     exitTime: z.string().optional(),
-    reason: z.string().min(5, 'Açıklama en az 5 karakter olmalıdır'),
-});
+    reason: z.string().min(5, t("reasonMin")),
+  });
 
-export type AttendanceCorrectionInput = z.infer<typeof attendanceCorrectionSchema>;
+export type AttendanceCorrectionInput = z.infer<
+  ReturnType<typeof getAttendanceCorrectionSchema>
+>;
+
+// Shift validation
+export const getShiftSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z.string().min(1, t("shiftNameRequired")),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, t("timeFormat")),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, t("timeFormat")),
+    breakMinutes: z.number().min(0, t("minZero")),
+    isDefault: z.boolean(),
+  });
+
+export type ShiftInput = z.infer<ReturnType<typeof getShiftSchema>>;

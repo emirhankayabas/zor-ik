@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { attendanceCorrectionSchema } from '@/lib/validations/employee';
+import { getAttendanceCorrectionSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 
 // GET /api/attendance-corrections - Get attendance correction requests (filtered by role)
 export async function GET(request: NextRequest) {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
         let requests;
 
         // Filter based on role and department
-        if (!personalOnly && (session.user.role === 'COMPANY_ADMIN' || isHRMember)) {
+        if (!personalOnly && (session.user.role === 'COMPANY_ADMIN' || session.user.role === 'SUPER_ADMIN' || isHRMember)) {
             // HR sees all requests for their company (when not just personal)
             requests = await prisma.attendanceCorrection.findMany({
                 where: {
@@ -194,8 +195,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const tValidation = await getTranslations('validation');
+        const tAttendance = await getTranslations('attendance');
         const body = await request.json();
-        const validatedData = attendanceCorrectionSchema.parse(body);
+        const validatedData = getAttendanceCorrectionSchema(tValidation).parse(body);
 
         const employee = await prisma.employee.findFirst({
             where: {
@@ -241,6 +244,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Step 2: HR approval
+        // Priority: İK dept manager → any İK dept member with MANAGER role → any COMPANY_ADMIN
         let hrAdminId = null;
         const hrDept = await prisma.department.findFirst({
             where: {
@@ -251,7 +255,20 @@ export async function POST(request: NextRequest) {
 
         if (hrDept?.managerId) {
             hrAdminId = hrDept.managerId;
-        } else {
+        } else if (hrDept) {
+            // İK dept exists but no manager — find any MANAGER-role user in İK
+            const hrMember = await prisma.employee.findFirst({
+                where: {
+                    departmentId: hrDept.id,
+                    user: { role: { in: ['MANAGER', 'COMPANY_ADMIN'] } },
+                },
+                select: { userId: true },
+            });
+            hrAdminId = hrMember?.userId || null;
+        }
+
+        if (!hrAdminId) {
+            // Fallback: any COMPANY_ADMIN in the company
             const firstAdmin = await prisma.user.findFirst({
                 where: {
                     role: 'COMPANY_ADMIN',
@@ -259,6 +276,23 @@ export async function POST(request: NextRequest) {
                 },
             });
             hrAdminId = firstAdmin?.id || null;
+        }
+
+        // Last resort: if still no HR approver, use the company's first MANAGER who is not the dept manager already in step 1
+        if (!hrAdminId) {
+            const anyManager = await prisma.user.findFirst({
+                where: {
+                    role: 'MANAGER',
+                    companyId: session.user.companyId,
+                    id: {
+                        notIn: [
+                            employee.userId,
+                            ...(approvals.length > 0 ? [approvals[0].approverId] : []),
+                        ],
+                    },
+                },
+            });
+            hrAdminId = anyManager?.id || null;
         }
 
         if (hrAdminId &&
@@ -285,9 +319,9 @@ export async function POST(request: NextRequest) {
                     data: {
                         userId: firstApproval.approverId,
                         companyId: session.user.companyId,
-                        title: 'Yeni Giriş/Çıkış Düzeltme Talebi',
-                        message: `${session.user.name} yeni bir düzeltme talebi oluşturdu. Onayınız bekleniyor.`,
-                        link: `/dashboard/hr/attendance-requests`, // We will create this page
+                        title: tAttendance('newRequestNotificationTitle') || 'Yeni Giriş/Çıkış Düzeltme Talebi',
+                        message: tAttendance('newRequestNotificationMessage', { name: session.user.name || '' }) || `${session.user.name} yeni bir düzeltme talebi oluşturdu. Onayınız bekleniyor.`,
+                        link: `/dashboard/hr/attendance-requests`,
                     }
                 });
             }

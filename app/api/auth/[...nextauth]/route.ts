@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
                     user.password
                 );
 
-                if (!isPasswordValid) {
+                if (!isPasswordValid || !user.isActive) {
                     return null;
                 }
 

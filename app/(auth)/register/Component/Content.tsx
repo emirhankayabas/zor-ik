@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
+import { useTranslations } from "next-intl";
+import { apiUrl } from "@/lib/api";
+import { getRegisterSchema, type RegisterInput } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,9 @@ interface Props {
 }
 
 export default function Content({ locale }: Props) {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("validation");
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +40,7 @@ export default function Content({ locale }: Props) {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(getRegisterSchema(tValidation)),
   });
 
   const onSubmit = async (data: RegisterInput) => {
@@ -43,7 +48,7 @@ export default function Content({ locale }: Props) {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(apiUrl("/api/auth/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,13 +59,13 @@ export default function Content({ locale }: Props) {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Kayıt sırasında bir hata oluştu");
+        setError(result.error || t("registerError"));
         return;
       }
 
       router.push(`/login?registered=true`);
     } catch (err) {
-      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+      setError(t("genericError"));
     } finally {
       setIsLoading(false);
     }
@@ -70,9 +75,9 @@ export default function Content({ locale }: Props) {
     <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 bg-muted/30">
       <Card className="w-full max-w-md border-border/50 shadow-xl overflow-hidden backdrop-blur-sm bg-background/95">
         <CardHeader className="pb-6 gap-0.5!">
-          <CardTitle>Hemen Başlayın</CardTitle>
+          <CardTitle>{t("getStarted")}</CardTitle>
           <CardDescription>
-            Şirketinizi yönetmek için ücretsiz hesabınızı oluşturun
+            {t("registerSubtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -84,14 +89,14 @@ export default function Content({ locale }: Props) {
                 className="animate-in fade-in slide-in-from-top-2 duration-300"
               >
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Hata</AlertTitle>
+                <AlertTitle>{tCommon("error")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="companyName">Şirket Adı</Label>
+                <Label htmlFor="companyName">{t("companyName")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <Building size="16" className="text-muted-foreground" />
@@ -99,7 +104,7 @@ export default function Content({ locale }: Props) {
                   <Input
                     {...formRegister("companyName")}
                     id="companyName"
-                    placeholder="Şirketiniz Ltd. Şti."
+                    placeholder={t("companyName")}
                     className="pl-8"
                     disabled={isLoading}
                   />
@@ -110,7 +115,7 @@ export default function Content({ locale }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Ad Soyad</Label>
+                <Label htmlFor="name">{t("fullName")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <User size="16" className="text-muted-foreground" />
@@ -118,7 +123,7 @@ export default function Content({ locale }: Props) {
                   <Input
                     {...formRegister("name")}
                     id="name"
-                    placeholder="Adınız Soyadınız"
+                    placeholder={t("fullName")}
                     className="pl-8"
                     disabled={isLoading}
                   />
@@ -129,7 +134,7 @@ export default function Content({ locale }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Kurumsal E-posta</Label>
+                <Label htmlFor="email">{t("corporateEmail")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <Mail size="16" className="text-muted-foreground" />
@@ -138,7 +143,7 @@ export default function Content({ locale }: Props) {
                     {...formRegister("email")}
                     id="email"
                     type="email"
-                    placeholder="ornek@sirket.com"
+                    placeholder={t("email")}
                     className="pl-8"
                     disabled={isLoading}
                   />
@@ -149,7 +154,7 @@ export default function Content({ locale }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Şifre</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <Lock size="16" className="text-muted-foreground" />
@@ -169,7 +174,7 @@ export default function Content({ locale }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <Lock size="16" className="text-muted-foreground" />
@@ -197,10 +202,10 @@ export default function Content({ locale }: Props) {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Hesap oluşturuluyor...
+                  {t("creatingAccount")}
                 </>
               ) : (
-                "Hesap Oluştur"
+                t("createAccount")
               )}
             </Button>
           </form>
@@ -208,12 +213,12 @@ export default function Content({ locale }: Props) {
 
         <CardFooter className="flex flex-col py-3! border-t">
           <p className="text-sm text-center text-muted-foreground">
-            Zaten bir hesabınız var mı?{" "}
+            {t("hasAccount")}{" "}
             <Link
               href="/login"
               className="font-bold text-primary hover:underline"
             >
-              Giriş Yapın
+              {t("loginLink")}
             </Link>
           </p>
         </CardFooter>

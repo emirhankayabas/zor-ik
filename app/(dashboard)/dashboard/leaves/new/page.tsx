@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import ErrorMessage from "@/components/error-message";
+import { toLocalDateString } from "@/lib/status-helpers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,20 +53,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
-const leaveSchema = z.object({
-  leaveTypeId: z.string().min(1, "Lütfen bir izin türü seçiniz"),
-  startDate: z.string().min(1, "Başlangıç tarihi zorunludur"),
-  endDate: z.string().min(1, "Bitiş tarihi zorunludur"),
-  reason: z.string().min(5, "Gerekçe en az 5 karakter olmalıdır"),
-});
+import { getLeaveRequestSchema } from "@/lib/validations/employee";
+import { useTranslations } from "next-intl";
 
-type LeaveFormValues = z.infer<typeof leaveSchema>;
+type LeaveFormValues = z.infer<ReturnType<typeof getLeaveRequestSchema>>;
 
 
 export default function NewLeavePage() {
   const router = useRouter();
-      const [isLoading, setIsLoading] = useState(false);
+  const t = useTranslations("leaves");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("validation");
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [leaveTypes, setLeaveTypes] = useState<{ id: string; name: string }[]>(
@@ -82,7 +85,7 @@ export default function NewLeavePage() {
     setValue,
     formState: { errors },
   } = useForm<LeaveFormValues>({
-    resolver: zodResolver(leaveSchema),
+    resolver: zodResolver(getLeaveRequestSchema(tValidation)),
   });
 
   const startDate = watch("startDate");
@@ -93,8 +96,8 @@ export default function NewLeavePage() {
       setIsFetchingLeaveTypes(true);
       try {
         const [typesRes, meRes] = await Promise.all([
-          fetch("/api/leave-types"),
-          fetch("/api/employees/me"),
+          fetch(apiUrl("/api/leave-types")),
+          fetch(apiUrl("/api/employees/me")),
         ]);
 
         if (typesRes.ok) {
@@ -108,7 +111,7 @@ export default function NewLeavePage() {
         }
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError("Veriler yüklenirken bir hata oluştu");
+        setError(t("fetchError"));
       } finally {
         setIsFetchingLeaveTypes(false);
       }
@@ -121,7 +124,7 @@ export default function NewLeavePage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/leave-requests", {
+      const response = await fetch(apiUrl("/api/leave-requests"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -130,7 +133,7 @@ export default function NewLeavePage() {
       if (!response.ok) {
         const result = await response.json();
         throw new Error(
-          result.error || "İzin talebi oluşturulurken bir hata oluştu",
+          result.error || t("addError"),
         );
       }
 
@@ -150,7 +153,7 @@ export default function NewLeavePage() {
     // Check if it's "Yıllık İzin" and if the balance is low
     const selectedType = leaveTypes.find((t) => t.id === data.leaveTypeId);
     if (
-      selectedType?.name === "Yıllık İzin" &&
+      selectedType?.name === t("annualLeave") &&
       employee &&
       employee.totalLeftLeaveDays <= 0
     ) {
@@ -171,10 +174,10 @@ export default function NewLeavePage() {
               <CheckCircle2 className="size-8" />
             </div>
             <h2 className="text-2xl font-black text-foreground">
-              Talep Gönderildi!
+              {t("requestSent")}
             </h2>
             <p className="text-muted-foreground font-medium">
-              İzin talebiniz onay sürecine alındı. Yönlendiriliyorsunuz...
+              {t("requestSentDesc")}
             </p>
           </CardContent>
         </Card>
@@ -194,11 +197,10 @@ export default function NewLeavePage() {
 
       <div className="space-y-2">
         <CardTitle className="text-xl mb-0.5 font-medium">
-          Yeni İzin Talebi
+          {t("newTitle")}
         </CardTitle>
         <CardDescription>
-          İhtiyacınız olan izin için detaylı bilgi girerek onay sürecini
-          başlatın.
+          {t("newSubtitle")}
         </CardDescription>
       </div>
 
@@ -207,15 +209,15 @@ export default function NewLeavePage() {
           <CardHeader className="flex items-center gap-x-4">
             <Clock className="size-5 text-primary" />
             <div>
-              <CardTitle>İzin Detayları</CardTitle>
+              <CardTitle>{t("leaveDetails")}</CardTitle>
               <CardDescription>
-                İzin türü ve gerekçesini belirtin.
+                {t("leaveDetailsDesc")}
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="pb-4 space-y-6 mt-8">
             <div className="space-y-2">
-              <Label htmlFor="leaveTypeId">İzin Türü *</Label>
+              <Label htmlFor="leaveTypeId">{t("leaveType")} *</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -230,10 +232,10 @@ export default function NewLeavePage() {
                     <SelectValue
                       placeholder={
                         isFetchingLeaveTypes
-                          ? "Yükleniyor..."
+                          ? tCommon("loading")
                           : leaveTypes.length === 0
-                            ? "İzin türü bulunamadı"
-                            : "İzin türünü seçiniz"
+                            ? t("noLeaveTypes")
+                            : t("selectLeaveType")
                       }
                     />
                   </SelectTrigger>
@@ -253,7 +255,7 @@ export default function NewLeavePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Başlangıç Tarihi *</Label>
+                <Label htmlFor="startDate">{t("startDate")} *</Label>
 
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -262,8 +264,8 @@ export default function NewLeavePage() {
 
                   <DatePicker
                     date={startDate ? new Date(startDate) : undefined}
-                    setDate={(date) => setValue("startDate", date ? date.toISOString().split("T")[0] : "")}
-                    placeholder="Başlangıç tarihi"
+                    setDate={(date) => setValue("startDate", date ? toLocalDateString(date) : "")}
+                    placeholder={t("startDate")}
                   />
                 </div>
                 {errors.startDate && (
@@ -272,13 +274,13 @@ export default function NewLeavePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="endDate">Bitiş Tarihi *</Label>
+                <Label htmlFor="endDate">{t("endDate")} *</Label>
 
                 <div className="relative">
                   <DatePicker
                     date={endDate ? new Date(endDate) : undefined}
-                    setDate={(date) => setValue("endDate", date ? date.toISOString().split("T")[0] : "")}
-                    placeholder="Bitiş tarihi"
+                    setDate={(date) => setValue("endDate", date ? toLocalDateString(date) : "")}
+                    placeholder={t("endDate")}
                   />
                 </div>
                 {errors.endDate && (
@@ -290,11 +292,11 @@ export default function NewLeavePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reason">Talep Gerekçesi *</Label>
+              <Label htmlFor="reason">{t("reason")} *</Label>
               <Textarea
                 {...register("reason")}
                 id="reason"
-                placeholder="İzin talebinizin detaylarını buraya yazınız..."
+                placeholder={t("reasonPlaceholder")}
                 className="min-h-30"
               />
               {errors.reason && (
@@ -306,14 +308,14 @@ export default function NewLeavePage() {
 
         {error && (
           <Alert variant="destructive">
-            <AlertTitle>Hata Oluştu</AlertTitle>
+            <AlertTitle>{tCommon("errorOccurred")}</AlertTitle>
             <AlertDescription className="mt-1">{error}</AlertDescription>
           </Alert>
         )}
 
         <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            Vazgeç
+            {tCommon("cancel")}
           </Button>
           <Button type="submit" disabled={isLoading} className="gap-2">
             {isLoading ? (
@@ -321,7 +323,7 @@ export default function NewLeavePage() {
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                Talebi Gönder
+                {t("sendRequest")}
               </>
             )}
           </Button>
@@ -334,22 +336,22 @@ export default function NewLeavePage() {
             <div className="size-12 rounded-full bg-rose-100 flex items-center justify-center mb-2">
               <AlertCircle className="size-6 text-rose-600" />
             </div>
-            <AlertDialogTitle>İzin Bakiyesi Yetersiz</AlertDialogTitle>
+            <AlertDialogTitle>{t("insufficientBalance")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Yıllık izin hakkınız kalmamıştır (Bakiyeniz: {employee?.totalLeftLeaveDays} gün). Bu talebi gönderirseniz bakiyeniz eksiye düşecektir.
+              {t("insufficientBalanceDesc", { balance: employee?.totalLeftLeaveDays })}
               <br /><br />
-              <strong>Borçlanarak devam etmek istiyor musunuz?</strong>
+              <strong>{t("continueWithDebt")}</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-rose-600 hover:bg-rose-700"
               onClick={() => {
                 if (pendingData) executeSubmit(pendingData);
               }}
             >
-              Evet, Devam Et
+              {tCommon("yesContinue")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

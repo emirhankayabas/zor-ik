@@ -16,22 +16,29 @@ datasource db {
 // ============================================
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  domain    String?  @unique
-  plan      String   @default("free") // free, basic, premium, enterprise
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  domain      String?  @unique
+  emailDomain String?  // e.g. "@tilia.com.tr" - auto-appended in employee email
+  timezone    String   @default("Europe/Istanbul")
+  locale      String   @default("tr")
+  country     String   @default("TR")
+  plan        String   @default("free") // free, basic, premium, enterprise
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  users         User[]
-  departments   Department[]
-  employees     Employee[]
-  leaveRequests        LeaveRequest[]
+  users                 User[]
+  departments           Department[]
+  employees             Employee[]
+  leaveRequests         LeaveRequest[]
   attendanceCorrections AttendanceCorrection[]
-  notifications        Notification[]
-  holidays             Holiday[]
+  notifications         Notification[]
+  holidays              Holiday[]
+  shifts                Shift[]
+  attendanceLogs        AttendanceLog[]
+  rolePermissions       RolePermission[]
 
   @@index([domain])
   @@map("companies")
@@ -46,6 +53,7 @@ model User {
   emailVerified DateTime?
   image         String?
   companyId     String
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -145,10 +153,12 @@ model Employee {
   position     String?
   hireDate     DateTime @default(now())
   companyId    String
+  shiftId      String?
+  cardId       String?  @unique // RFID/Card ID for PDKS
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // NEW: Advanced Leave & Working Days
+  // Advanced Leave & Working Days
   workingDays        Int[] @default([1, 2, 3, 4, 5]) // 1 (Mon) to 7 (Sun)
   annualLeaveQuota   Int   @default(0)
   totalLeftLeaveDays Float @default(0)
@@ -157,14 +167,17 @@ model Employee {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shift         Shift?         @relation(fields: [shiftId], references: [id], onDelete: SetNull)
   leaveRequests LeaveRequest[]
   salary                Salary?
   payrolls              Payroll[]
   attendanceCorrections AttendanceCorrection[]
+  attendanceLogs        AttendanceLog[]
 
   @@index([userId])
   @@index([departmentId])
   @@index([companyId])
+  @@index([cardId])
   @@map("employees")
 }
 
@@ -346,4 +359,83 @@ enum CorrectionStatus {
   MANAGER_APPROVED
   APPROVED
   REJECTED
+}
+
+// ============================================
+// PDKS (Attendance Control System)
+// ============================================
+
+model Shift {
+  id        String   @id @default(cuid())
+  name      String   // "Gündüz", "Gece", "Özel"
+  startTime String   // "08:30" (HH:mm)
+  endTime   String   // "17:30" (HH:mm)
+  breakMinutes Int   @default(60) // Lunch break in minutes
+  isDefault Boolean  @default(false)
+  companyId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employees Employee[]
+
+  @@unique([name, companyId])
+  @@index([companyId])
+  @@map("shifts")
+}
+
+model AttendanceLog {
+  id          String    @id @default(cuid())
+  employeeId  String
+  date        DateTime  @db.Date // The calendar date
+  checkIn     DateTime? // Actual check-in timestamp
+  checkOut    DateTime? // Actual check-out timestamp
+  lateMinutes   Int     @default(0) // Geç Giriş (minutes)
+  earlyMinutes  Int     @default(0) // Erken Çıkış (minutes)
+  overtimeMinutes Int   @default(0) // Fazla Mesai (minutes)
+  totalWorkMinutes Int  @default(0) // Net çalışma süresi
+  source      AttendanceSource @default(CARD) // How the log was created
+  companyId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([companyId])
+  @@index([date])
+  @@map("attendance_logs")
+}
+
+enum AttendanceSource {
+  CARD       // RFID/Card reader
+  MANUAL     // Manual entry by admin
+  CORRECTION // Created from approved correction request
+}
+
+// ============================================
+// RBAC (Role-Based Access Control)
+// ============================================
+
+model RolePermission {
+  id         String   @id @default(cuid())
+  role       UserRole
+  resource   String   // e.g. "salary", "reports", "settings", "employees", "pdks"
+  canView    Boolean  @default(false)
+  canEdit    Boolean  @default(false)
+  companyId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([role, resource, companyId])
+  @@index([companyId])
+  @@index([role])
+  @@map("role_permissions")
 }

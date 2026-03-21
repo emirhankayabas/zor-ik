@@ -1,10 +1,9 @@
-﻿import { getServerAuthSession } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
+import { getTranslations } from "next-intl/server";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import {
   Users,
-  Search,
-  MoreHorizontal,
   Mail,
   UserPlus,
   ShieldCheck,
@@ -17,15 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { EmployeeActionsMenu } from "@/components/employee-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -49,6 +41,10 @@ export default async function EmployeesPage({
   if (!session) {
     return null;
   }
+
+  const t = await getTranslations("employees");
+  const tCommon = await getTranslations("common");
+  const tRoles = await getTranslations("roles");
 
   // Fetch departments for the filter dropdown
   const departments = await prisma.department.findMany({
@@ -89,9 +85,15 @@ export default async function EmployeesPage({
           name: true,
           email: true,
           role: true,
+          isActive: true,
         },
       },
       department: {
+        select: {
+          name: true,
+        },
+      },
+      shift: {
         select: {
           name: true,
         },
@@ -107,15 +109,15 @@ export default async function EmployeesPage({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <CardTitle className="text-xl mb-0.5 font-medium">
-            Çalışan Listesi
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Sistemimizdeki tüm ekip üyeleri ve departman rolleri.
+            {t("subtitle")}
           </CardDescription>
         </div>
         <Button size="sm" asChild>
           <Link href={`/dashboard/employees/new`}>
-            <UserPlus className="mr-2 size-4" /> Yeni Çalışan Ekle
+            <UserPlus className="mr-2 size-4" /> {t("addNew")}
           </Link>
         </Button>
       </div>
@@ -131,14 +133,14 @@ export default async function EmployeesPage({
                 <Users className="size-8 text-muted-foreground opacity-30" />
               </div>
               <h3 className="text-xl font-bold text-foreground mb-2">
-                Sonuç Bulunamadı
+                {tCommon("noResults")}
               </h3>
               <p className="text-muted-foreground max-w-xs mx-auto mb-6">
-                Filtreleme kriterlerinize uygun çalışan bulunamadı veya henüz kayıt yok.
+                {t("noResultsDesc")}
               </p>
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/dashboard/employees`}>
-                  Tüm Listeyi Gör
+                  {t("showAll")}
                 </Link>
               </Button>
             </div>
@@ -146,16 +148,17 @@ export default async function EmployeesPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Üye</TableHead>
-                  <TableHead>Departman</TableHead>
-                  <TableHead>Pozisyon</TableHead>
-                  <TableHead>Sistem Rolü</TableHead>
-                  <TableHead className="text-right">İşlemler</TableHead>
+                  <TableHead>{t("member")}</TableHead>
+                  <TableHead>{t("department")}</TableHead>
+                  <TableHead>{t("position")}</TableHead>
+                  <TableHead>{t("shift")}</TableHead>
+                  <TableHead>{t("systemRole")}</TableHead>
+                  <TableHead className="text-right">{tCommon("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {employees.map((employee: any) => (
-                  <TableRow key={employee.id}>
+                  <TableRow key={employee.id} className={!employee.user.isActive ? "opacity-50" : ""}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="size-10 border-border shadow-none">
@@ -164,9 +167,16 @@ export default async function EmployeesPage({
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm">
-                            {employee.user.name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm">
+                              {employee.user.name}
+                            </span>
+                            {!employee.user.isActive && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/40 text-destructive">
+                                Pasif
+                              </Badge>
+                            )}
+                          </div>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Mail className="size-3" /> {employee.user.email}
                           </span>
@@ -175,58 +185,33 @@ export default async function EmployeesPage({
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {employee.department?.name || "Genel"}
+                        {employee.department?.name || tCommon("general")}
                       </Badge>
                     </TableCell>
                     <TableCell>{employee.position || "-"}</TableCell>
                     <TableCell>
+                      {employee.shift ? (
+                        <Badge variant="outline">{employee.shift.name}</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {employee.user.role === "COMPANY_ADMIN" ? (
                         <Badge>
-                          <ShieldCheck className="size-3 mr-1" /> Admin
+                          <ShieldCheck className="size-3 mr-1" /> {tRoles("admin")}
                         </Badge>
                       ) : employee.user.role === "MANAGER" ? (
-                        <Badge variant="secondary">Yönetici</Badge>
+                        <Badge variant="secondary">{tRoles("manager")}</Badge>
                       ) : (
-                        <Badge variant="outline">Personel</Badge>
+                        <Badge variant="outline">{tRoles("employee")}</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right px-6">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          >
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/dashboard/employees/${employee.id}/edit`}
-                            >
-                              Seçileni Düzenle
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            Performans Görüntüle
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/dashboard/leaves`}
-                            >
-                              İzin Geçmişi
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            Pasif Yap
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <EmployeeActionsMenu
+                        employeeId={employee.id}
+                        isActive={employee.user.isActive}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

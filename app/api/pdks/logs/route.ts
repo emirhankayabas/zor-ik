@@ -1,0 +1,71 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerAuthSession } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+
+const ADMIN_ROLES = ["COMPANY_ADMIN", "SUPER_ADMIN", "MANAGER"];
+const HR_DEPTS = ["İK", "İnsan Kaynakları"];
+
+function canViewGlobalLogs(session: any) {
+  if (ADMIN_ROLES.includes(session.user.role)) return true;
+  if (HR_DEPTS.includes(session.user.departmentName)) return true;
+  return false;
+}
+
+// GET /api/pdks/logs - Fetch attendance logs with filters
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerAuthSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only Admin / HR can access global PDKS logs
+    if (!canViewGlobalLogs(session)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const employeeId = searchParams.get("employeeId");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const departmentId = searchParams.get("departmentId");
+
+    const where: any = {
+      companyId: session.user.companyId,
+    };
+
+    if (employeeId) {
+      where.employeeId = employeeId;
+    }
+
+    if (departmentId && departmentId !== "all") {
+      where.employee = { departmentId };
+    }
+
+    if (startDate) {
+      where.date = { ...where.date, gte: new Date(startDate) };
+    }
+    if (endDate) {
+      where.date = { ...where.date, lte: new Date(endDate) };
+    }
+
+    const logs = await prisma.attendanceLog.findMany({
+      where,
+      include: {
+        employee: {
+          include: {
+            user: { select: { name: true, email: true } },
+            department: { select: { name: true } },
+            shift: { select: { name: true, startTime: true, endTime: true } },
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+      take: 200,
+    });
+
+    return NextResponse.json(logs);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

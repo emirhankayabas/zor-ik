@@ -1,11 +1,18 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect, useCallback } from "react";
 
 import { useSession } from "next-auth/react";
 import {
+  getStatusStyle,
+  getStatusLabel,
+  getStatusIcon,
+  formatDateLocale,
+} from "@/lib/status-helpers";
+import { useTranslations, useLocale } from "next-intl";
+import {
   Calendar as CalendarIcon,
-  Clock,
   CheckCircle2,
   XCircle,
   MoreHorizontal,
@@ -68,6 +75,11 @@ interface LeaveRequest {
 
 export default function HRApprovalsPage() {
   const { data: session } = useSession();
+  const t = useTranslations("hr");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
+  const tRoles = useTranslations("roles");
+  const locale = useLocale();
     
   const [categorizedRequests, setCategorizedRequests] = useState<{
     pending: LeaveRequest[];
@@ -84,7 +96,7 @@ export default function HRApprovalsPage() {
   const fetchHRRequests = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
-      const response = await fetch("/api/leave-requests");
+      const response = await fetch(apiUrl("/api/leave-requests"));
       const data: LeaveRequest[] = await response.json();
 
       // Filter for requests where İK (approvalOrder: 2)
@@ -138,7 +150,7 @@ export default function HRApprovalsPage() {
   ) => {
     setActionLoading(requestId);
     try {
-      const response = await fetch(`/api/leave-requests/${requestId}/approve`, {
+      const response = await fetch(apiUrl(`/api/leave-requests/${requestId}/approve`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -151,45 +163,6 @@ export default function HRApprovalsPage() {
       console.error("Action failed:", error);
     } finally {
       setActionLoading(null);
-    }
-  };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none";
-      case "APPROVED":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none";
-      case "REJECTED":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-none";
-      default:
-        return "bg-muted text-muted-foreground border-none";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Beklemede";
-      case "APPROVED":
-        return "Onaylandı";
-      case "REJECTED":
-        return "Reddedildi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="size-3 mr-1" />;
-      case "APPROVED":
-        return <CheckCircle2 className="size-3 mr-1" />;
-      case "REJECTED":
-        return <XCircle className="size-3 mr-1" />;
-      default:
-        return null;
     }
   };
 
@@ -211,13 +184,13 @@ export default function HRApprovalsPage() {
                 <div className="space-y-0.5">
                   <CardTitle>{request.employee.user.name}</CardTitle>
                   <CardDescription className="flex items-center gap-x-2 text-xs">
-                    <span>{request.employee.department?.name || "Genel"}</span>
+                    <span>{request.employee.department?.name || tCommon("general")}</span>
                     <Separator orientation="vertical" className="h-3 mt-0.5" />
                     <div className="flex items-center gap-2">
                       <span>{request.leaveType.name}</span>
-                      {request.leaveType.name === "Yıllık İzin" && request.actualDays > (request.employee.totalLeftLeaveDays || 0) && (
+                      {request.leaveType.name === tCommon("annualLeave") && request.actualDays > (request.employee.totalLeftLeaveDays || 0) && (
                         <Badge variant="outline" className="text-[10px] py-0 h-4 bg-rose-50 text-rose-600 border-rose-200">
-                          Avans İzin
+                          {tCommon("advanceLeave")}
                         </Badge>
                       )}
                     </div>
@@ -227,7 +200,7 @@ export default function HRApprovalsPage() {
               <div className="flex items-center gap-3 self-end sm:self-center">
                 <Badge className={`${getStatusStyle(request.status)}`}>
                   {getStatusIcon(request.status)}
-                  {getStatusLabel(request.status)}
+                  {getStatusLabel(request.status, tStatus)}
                 </Badge>
                 <Button variant="ghost" size="icon" asChild>
                   <Link href={`/dashboard/leaves/${request.id}`}>
@@ -246,16 +219,9 @@ export default function HRApprovalsPage() {
                       <CalendarIcon className="size-5" />
                     </div>
                     <div>
-                      <CardDescription>Başlangıç</CardDescription>
+                      <CardDescription>{tCommon("startDate")}</CardDescription>
                       <p className="text-sm font-bold">
-                        {new Date(request.startDate).toLocaleDateString(
-                          "tr-TR",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          },
-                        )}
+                        {formatDateLocale(request.startDate, locale)}
                       </p>
                     </div>
                   </div>
@@ -265,13 +231,9 @@ export default function HRApprovalsPage() {
                       <CalendarIcon className="size-5" />
                     </div>
                     <div>
-                      <CardDescription>Bitiş</CardDescription>
+                      <CardDescription>{tCommon("endDate")}</CardDescription>
                       <p className="text-sm font-bold">
-                        {new Date(request.endDate).toLocaleDateString("tr-TR", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        {formatDateLocale(request.endDate, locale)}
                       </p>
                     </div>
                   </div>
@@ -279,7 +241,7 @@ export default function HRApprovalsPage() {
                 <div className="flex items-start gap-4">
                   <Info className="size-4 text-primary mt-0.5 opacity-50" />
                   <div>
-                    <CardDescription>Talep Gerekçesi</CardDescription>
+                    <CardDescription>{tCommon("reason")}</CardDescription>
                     <CardDescription className="text-foreground mt-1">
                       "{request.reason}"
                     </CardDescription>
@@ -289,7 +251,7 @@ export default function HRApprovalsPage() {
 
               <div className="lg:col-span-4 border-l pl-8 space-y-6">
                 <div>
-                  <CardTitle className="text-sm">Onay Akışı</CardTitle>
+                  <CardTitle className="text-sm">{tCommon("approvalFlow")}</CardTitle>
                   <div className="space-y-6 mt-4">
                     {request.approvals
                       .sort((a, b) => a.approvalOrder - b.approvalOrder)
@@ -327,12 +289,12 @@ export default function HRApprovalsPage() {
                             <p className="text-[10px] text-muted-foreground uppercase">
                               {approval.approver.managedDepts?.[0]?.name ||
                                 (approval.approvalOrder === 2
-                                  ? "İK Onayı"
-                                  : "Yönetici Onayı")}{" "}
+                                  ? tRoles("hrManager")
+                                  : tRoles("unitManager"))}{" "}
                               ·{" "}
                               {approval.status === "PENDING"
-                                ? "Bekliyor"
-                                : "İşlendi"}
+                                ? tStatus("pending")
+                                : tStatus("processed")}
                             </p>
                           </div>
                         </div>
@@ -349,19 +311,19 @@ export default function HRApprovalsPage() {
                   variant="destructive"
                   size="sm"
                   onClick={() => handleAction(request.id, "REJECTED")}
-                  disabled={isProcessing}
+                  disabled={!!isProcessing}
                 >
-                  Reddet
+                  {tCommon("reject")}
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => handleAction(request.id, "APPROVED")}
-                  disabled={isProcessing}
+                  disabled={!!isProcessing}
                 >
                   {isProcessing ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    "Hemen Onayla"
+                    tCommon("approve")
                   )}
                 </Button>
               </div>
@@ -371,7 +333,7 @@ export default function HRApprovalsPage() {
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/dashboard/leaves/${request.id}`}>
-              Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
+              {tCommon("viewDetails")} <ChevronDown className="size-3" />
             </Link>
           </Button>
         </div>
@@ -404,10 +366,9 @@ export default function HRApprovalsPage() {
   return (
     <div className="flex flex-col gap-8 px-4 pb-12">
       <div>
-        <CardTitle className="text-xl font-bold">İK Onayları</CardTitle>
+        <CardTitle className="text-xl font-bold">{t("title")}</CardTitle>
         <CardDescription>
-          İK olarak nihai onayınızı bekleyen veya geçmişte işlenmiş personel
-          izin talepleri.
+          {t("subtitle")}
         </CardDescription>
       </div>
 
@@ -416,10 +377,9 @@ export default function HRApprovalsPage() {
         (session?.user as any)?.role !== "COMPANY_ADMIN" && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Yetkisiz Erişim</AlertTitle>
+            <AlertTitle>{tCommon("unauthorized")}</AlertTitle>
             <AlertDescription>
-              Bu sayfayı görüntülemek için İnsan Kaynakları departmanında
-              olmanız gerekmektedir.
+              {t("unauthorizedDesc")}
             </AlertDescription>
           </Alert>
         )}
@@ -427,7 +387,7 @@ export default function HRApprovalsPage() {
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="mb-6 bg-muted/50">
           <TabsTrigger value="pending" className="px-8 gap-2">
-            Bekleyenler
+            {tCommon("pending")}
             {categorizedRequests.pending.length > 0 && (
               <Badge
                 variant="secondary"
@@ -438,14 +398,14 @@ export default function HRApprovalsPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="processed" className="px-8">
-            Geçmiş İşlemler
+            {tCommon("processed")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending">
           <div className="grid gap-4">
             {categorizedRequests.pending.length === 0 ? (
-              <EmptyState message="Şu an onayınızı bekleyen talep bulunmuyor." />
+              <EmptyState message={t("noPending")} />
             ) : (
               categorizedRequests.pending.map((req) => (
                 <RequestCard key={req.id} request={req} />
@@ -458,17 +418,17 @@ export default function HRApprovalsPage() {
           <Tabs defaultValue="approved" className="w-full">
             <TabsList className="mb-4 bg-muted/20 w-fit">
               <TabsTrigger value="approved" className="text-xs">
-                Onaylananlar ({categorizedRequests.approved.length})
+                {tCommon("approved")} ({categorizedRequests.approved.length})
               </TabsTrigger>
               <TabsTrigger value="rejected" className="text-xs">
-                Reddedilenler ({categorizedRequests.rejected.length})
+                {tCommon("rejected")} ({categorizedRequests.rejected.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="approved">
               <div className="grid gap-4">
                 {categorizedRequests.approved.length === 0 ? (
-                  <EmptyState message="Onaylanmış bir talep bulunmuyor." />
+                  <EmptyState message={t("noApproved")} />
                 ) : (
                   categorizedRequests.approved.map((req) => (
                     <RequestCard key={req.id} request={req} />
@@ -481,7 +441,7 @@ export default function HRApprovalsPage() {
               <div className="grid gap-4">
                 {categorizedRequests.rejected.length === 0 ? (
                   <EmptyState
-                    message="Reddedilmiş bir talep bulunmuyor."
+                    message={t("noRejected")}
                     icon={Info}
                   />
                 ) : (

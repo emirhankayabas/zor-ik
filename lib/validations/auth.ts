@@ -1,22 +1,24 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const loginSchema = z.object({
-    email: z.string().email('Geçersiz e-posta adresi'),
-    password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
-});
+export const getLoginSchema = (t: (key: string) => string) =>
+  z.object({
+    email: z.string().email(t("invalidEmail")),
+    password: z.string().min(6, t("passwordMin")),
+  });
 
-export const registerSchema = z
+export const getRegisterSchema = (t: (key: string) => string) =>
+  z
     .object({
-        companyName: z.string().min(2, 'Şirket adı en az 2 karakter olmalıdır'),
-        name: z.string().min(2, 'Ad soyad en az 2 karakter olmalıdır'),
-        email: z.string().email('Geçersiz e-posta adresi'),
-        password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
-        confirmPassword: z.string(),
+      companyName: z.string().min(2, t("companyNameMin")),
+      name: z.string().min(2, t("nameMin")),
+      email: z.string().email(t("invalidEmail")),
+      password: z.string().min(6, t("passwordMin")),
+      confirmPassword: z.string(),
     })
     .refine((data) => data.password === data.confirmPassword, {
-        message: 'Şifreler eşleşmiyor',
-        path: ['confirmPassword'],
+      message: t("passwordsNotMatch"),
+      path: ["confirmPassword"],
     });
 
-export type LoginInput = z.infer<typeof loginSchema>;
-export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<ReturnType<typeof getLoginSchema>>;
+export type RegisterInput = z.infer<ReturnType<typeof getRegisterSchema>>;

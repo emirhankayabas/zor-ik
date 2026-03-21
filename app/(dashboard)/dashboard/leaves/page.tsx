@@ -1,13 +1,21 @@
-﻿"use client";
+"use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
 import { useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
+import {
+  getStatusStyle,
+  getStatusLabel,
+  getStatusIcon,
+  formatDateLocale,
+} from "@/lib/status-helpers";
+import { toast } from "sonner";
 import {
   Calendar as CalendarIcon,
   Plus,
-  Clock,
   CheckCircle2,
   XCircle,
   MoreHorizontal,
@@ -71,6 +79,11 @@ interface LeaveRequest {
 
 export default function LeavesPage() {
   const { data: session } = useSession();
+  const t = useTranslations("leaves");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
+  const tRoles = useTranslations("roles");
+  const locale = useLocale();
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,7 +95,7 @@ export default function LeavesPage() {
 
   const fetchLeaveRequests = async () => {
     try {
-      const response = await fetch("/api/leave-requests?personal=true");
+      const response = await fetch(apiUrl("/api/leave-requests?personal=true"));
       const data = await response.json();
       setLeaveRequests(data);
     } catch (error) {
@@ -94,12 +107,12 @@ export default function LeavesPage() {
 
 
   const handleDelete = async (requestId: string) => {
-    if (!confirm("Bu izin talebini iptal etmek istediğinize emin misiniz?"))
+    if (!confirm(t("deleteConfirm")))
       return;
 
     setActionLoading(requestId);
     try {
-      const response = await fetch(`/api/leave-requests/${requestId}`, {
+      const response = await fetch(apiUrl(`/api/leave-requests/${requestId}`), {
         method: "DELETE",
       });
 
@@ -107,55 +120,15 @@ export default function LeavesPage() {
         await fetchLeaveRequests();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "Silme işlemi başarısız oldu");
+        toast.error(errorData.error || t("deleteError"));
       }
     } catch (error) {
       console.error("Failed to delete request:", error);
-      alert("Bir hata oluştu");
+      toast.error(tCommon("errorOccurred"));
     } finally {
       setActionLoading(null);
     }
   };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none";
-      case "APPROVED":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none";
-      case "REJECTED":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-none";
-      default:
-        return "bg-muted text-muted-foreground border-none";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Beklemede";
-      case "APPROVED":
-        return "Onaylandı";
-      case "REJECTED":
-        return "Reddedildi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="size-3 mr-1" />;
-      case "APPROVED":
-        return <CheckCircle2 className="size-3 mr-1" />;
-      case "REJECTED":
-        return <XCircle className="size-3 mr-1" />;
-      default:
-        return null;
-    }
-  };
-
 
   if (isLoading) {
     return (
@@ -181,15 +154,15 @@ export default function LeavesPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <CardTitle className="text-xl mb-0.5 font-medium">
-            İzin Taleplerim
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Şahsi izin talepleriniz ve onay süreçleri takibi.
+            {t("subtitle")}
           </CardDescription>
         </div>
         <Button size="sm" asChild>
           <Link href={`/dashboard/leaves/new`}>
-            <Plus className="mr-2 size-4" /> Yeni İzin Talebi
+            <Plus className="mr-2 size-4" /> {t("newRequest")}
           </Link>
         </Button>
       </div>
@@ -197,19 +170,18 @@ export default function LeavesPage() {
       {leaveRequests.length === 0 ? (
         <Card className="border-dashed border">
           <CardContent className="p-24 text-center">
-            <div className="size-16 bg-background rounded-2xl border flex items-center justify-center mx-auto mb-4">
-              <CalendarIcon className="size-8 text-primary opacity-30" />
+            <div className="size-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CalendarIcon className="size-8 text-muted-foreground opacity-30" />
             </div>
             <h3 className="text-xl font-bold tracking-tight mb-2">
-              Aktif İzin Talebi Yok
+              {t("noActiveRequest")}
             </h3>
             <CardDescription className="text-muted-foreground text-sm max-w-sm mx-auto mb-2">
-              Şu an incelenmesi gereken veya geçmişe dönük bir izin kaydı
-              bulunamadı.
+              {t("noActiveRequestDesc")}
             </CardDescription>
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dashboard/leaves/new`}>
-                İlk Talebi Oluştur
+                {tCommon("createFirst")}
               </Link>
             </Button>
           </CardContent>
@@ -231,7 +203,7 @@ export default function LeavesPage() {
                         <CardTitle>{request.employee.user.name}</CardTitle>
                         <CardDescription className="flex items-center gap-x-2 text-xs">
                           <span>
-                            {request.employee.department?.name || "Genel"}
+                            {request.employee.department?.name || tCommon("general")}
                           </span>
                           <Separator
                             orientation="vertical"
@@ -244,7 +216,7 @@ export default function LeavesPage() {
                     <div className="flex items-center gap-3 self-end sm:self-center">
                       <Badge className={`${getStatusStyle(request.status)}`}>
                         {getStatusIcon(request.status)}
-                        {getStatusLabel(request.status)}
+                        {getStatusLabel(request.status, tStatus)}
                       </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -255,14 +227,14 @@ export default function LeavesPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/leaves/${request.id}`}>
-                              Talep Detayları
+                              {tCommon("requestDetails")}
                             </Link>
                           </DropdownMenuItem>
                           {request.status === "PENDING" && (
                             <>
                               <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/leaves/${request.id}/edit`}>
-                                  Düzenle
+                                  {tCommon("edit")}
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -270,7 +242,7 @@ export default function LeavesPage() {
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => handleDelete(request.id)}
                               >
-                                İptal Et
+                                {tCommon("cancel")}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -288,16 +260,9 @@ export default function LeavesPage() {
                             <CalendarIcon className="size-5" />
                           </div>
                           <div>
-                            <CardDescription>Başlangıç</CardDescription>
+                            <CardDescription>{t("startDate")}</CardDescription>
                             <p className="text-sm font-bold">
-                              {new Date(request.startDate).toLocaleDateString(
-                                "tr-TR",
-                                {
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                },
-                              )}
+                              {formatDateLocale(request.startDate, locale)}
                             </p>
                           </div>
                         </div>
@@ -307,16 +272,9 @@ export default function LeavesPage() {
                             <CalendarIcon className="size-5" />
                           </div>
                           <div>
-                            <CardDescription>Bitiş</CardDescription>
+                            <CardDescription>{t("endDate")}</CardDescription>
                             <p className="text-sm font-bold">
-                              {new Date(request.endDate).toLocaleDateString(
-                                "tr-TR",
-                                {
-                                  day: "numeric",
-                                  month: "long",
-                                  year: "numeric",
-                                },
-                              )}
+                              {formatDateLocale(request.endDate, locale)}
                             </p>
                           </div>
                         </div>
@@ -324,7 +282,7 @@ export default function LeavesPage() {
                       <div className="flex items-start gap-4">
                         <Info className="size-4 text-primary mt-0.5 opacity-50" />
                         <div>
-                          <CardDescription>Talep Gerekçesi</CardDescription>
+                          <CardDescription>{t("reason")}</CardDescription>
                           <CardDescription className="text-foreground mt-1">
                             "{request.reason}"
                           </CardDescription>
@@ -334,7 +292,7 @@ export default function LeavesPage() {
 
                     <div className="lg:col-span-4 border-l pl-8 space-y-6">
                       <div>
-                        <CardTitle className="text-sm">Onay Akışı</CardTitle>
+                        <CardTitle className="text-sm">{t("approvalFlow")}</CardTitle>
                         <div className="space-y-6 mt-4">
                           {request.approvals.map((approval, idx) => (
                             <div
@@ -366,11 +324,20 @@ export default function LeavesPage() {
                                   {approval.approver.name}
                                 </p>
                                 <p className="text-[10px] text-muted-foreground uppercase">
-                                  {approval.approver.managedDepts?.[0]?.name || (approval.approvalOrder === 1 ? "Birim Yöneticisi" : "İK Yöneticisi")} ·{" "}
+                                  {approval.approver.managedDepts?.[0]?.name ||
+                                    (approval.approvalOrder === 1
+                                      ? tRoles("unitManager")
+                                      : tRoles("hrManager"))}{" "}
+                                  ·{" "}
                                   {approval.status === "PENDING"
-                                    ? "Bekliyor"
-                                    : "İşlendi"}
+                                    ? tStatus("pending")
+                                    : tStatus("processed")}
                                 </p>
+                                {approval.comment && (
+                                  <p className="text-[10px] text-muted-foreground italic mt-0.5">
+                                    &quot;{approval.comment}&quot;
+                                  </p>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -384,7 +351,7 @@ export default function LeavesPage() {
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={`/dashboard/leaves/${request.id}`}>
-                    Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
+                    {t("viewLog")} <ChevronDown className="size-3" />
                   </Link>
                 </Button>
               </div>

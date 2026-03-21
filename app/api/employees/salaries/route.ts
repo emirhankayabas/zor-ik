@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     try {
         const session = await getServerAuthSession();
         const isHR = session?.user?.role === 'COMPANY_ADMIN' ||
+            session?.user?.role === 'SUPER_ADMIN' ||
             session?.user?.departmentName === 'İK' ||
             session?.user?.departmentName === 'İnsan Kaynakları';
 

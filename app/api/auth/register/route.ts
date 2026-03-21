@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
-import { registerSchema } from '@/lib/validations/auth';
+import { getRegisterSchema } from '@/lib/validations/auth';
+import { getTranslations } from 'next-intl/server';
 import { UserRole } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
     try {
+        const tValidation = await getTranslations('validation');
+        const tAuth = await getTranslations('auth');
         const body = await request.json();
 
         // Validate input
-        const validatedData = registerSchema.parse(body);
+        const validatedData = getRegisterSchema(tValidation).parse(body);
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
@@ -20,7 +23,7 @@ export async function POST(request: NextRequest) {
 
         if (existingUser) {
             return NextResponse.json(
-                { error: 'Bu e-posta adresi zaten kullanılıyor' },
+                { error: tAuth('emailInUse') || 'Bu e-posta adresi zaten kullanılıyor' },
                 { status: 400 }
             );
         }
@@ -63,7 +66,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             {
-                message: 'Kayıt başarılı',
+                message: tAuth('registerSuccess') || 'Kayıt başarılı',
                 user: {
                     id: result.user.id,
                     email: result.user.email,
@@ -75,15 +78,16 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error('Registration error:', error);
 
+        const tAuthCatch = await getTranslations('auth');
         if (error.name === 'ZodError') {
             return NextResponse.json(
-                { error: 'Geçersiz form verileri' },
+                { error: tAuthCatch('invalidData') || 'Geçersiz form verileri' },
                 { status: 400 }
             );
         }
 
         return NextResponse.json(
-            { error: 'Kayıt sırasında bir hata oluştu' },
+            { error: tAuthCatch('registerError') || 'Kayıt sırasında bir hata oluştu' },
             { status: 500 }
         );
     }

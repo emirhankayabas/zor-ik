@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { leaveRequestSchema } from '@/lib/validations/employee';
+import { getLeaveRequestSchema } from '@/lib/validations/employee';
 import { calculateLeaveDays } from '@/lib/leave-engine';
+import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests - Get leave requests (filtered by role)
 export async function GET(request: NextRequest) {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const personalOnly = searchParams.get('personal') === 'true';
+        const filterEmployeeId = searchParams.get('employeeId');
 
         const employee = await prisma.employee.findFirst({
             where: {
@@ -30,14 +32,16 @@ export async function GET(request: NextRequest) {
         }
 
         const isHRMember = employee.department?.name === 'İnsan Kaynakları' || employee.department?.name === 'İK';
+        const isAdmin = session.user.role === 'COMPANY_ADMIN' || session.user.role === 'SUPER_ADMIN' || isHRMember;
 
         let leaveRequests;
 
         // Filter based on role and department
-        if (!personalOnly && (session.user.role === 'COMPANY_ADMIN' || isHRMember)) {
-            // HR sees all requests for their company
+        if (!personalOnly && isAdmin) {
+            // HR sees all requests for their company (optionally filtered by employeeId)
             leaveRequests = await prisma.leaveRequest.findMany({
                 where: {
+                    ...(filterEmployeeId ? { employeeId: filterEmployeeId } : {}),
                     employee: {
                         companyId: session.user.companyId,
                     },
@@ -208,8 +212,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const tValidation = await getTranslations('validation');
+        const tLeaves = await getTranslations('leaves');
         const body = await request.json();
-        const validatedData = leaveRequestSchema.parse(body);
+        const validatedData = getLeaveRequestSchema(tValidation).parse(body);
 
         const startDate = new Date(validatedData.startDate);
         const endDate = new Date(validatedData.endDate);
@@ -251,7 +257,7 @@ export async function POST(request: NextRequest) {
         );
 
         if (actualDays === 0) {
-            return NextResponse.json({ error: 'Seçilen tarihlerde iş günü bulunamadı.' }, { status: 400 });
+            return NextResponse.json({ error: tLeaves('noBusinessDaysError') || 'Seçilen tarihlerde iş günü bulunamadı.' }, { status: 400 });
         }
 
         // Check for overlapping leave requests
@@ -272,7 +278,7 @@ export async function POST(request: NextRequest) {
 
         if (overlappingRequest) {
             return NextResponse.json({
-                error: 'Seçilen tarihlerde zaten onaylanmış veya bekleyen bir izin talebiniz bulunuyor.'
+                error: tLeaves('overlappingRequestError') || 'Seçilen tarihlerde zaten onaylanmış veya bekleyen bir izin talebiniz bulunuyor.'
             }, { status: 400 });
         }
 
@@ -283,7 +289,10 @@ export async function POST(request: NextRequest) {
 
         if (leaveType?.name === 'Yıllık İzin' && actualDays > (employee.totalLeftLeaveDays + 5)) {
             return NextResponse.json({
-                error: `Yetersiz izin kotası. Mevcut bakiyenizle en fazla -5 güne kadar borçlanabilirsiniz. Kalan: ${employee.totalLeftLeaveDays} gün, Talep edilen: ${actualDays} gün.`
+                error: tLeaves('insufficientQuotaDetail', { 
+                    remaining: employee.totalLeftLeaveDays, 
+                    requested: actualDays 
+                }) || `Yetersiz izin kotası. Mevcut bakiyenizle en fazla -5 güne kadar borçlanabilirsiniz. Kalan: ${employee.totalLeftLeaveDays} gün, Talep edilen: ${actualDays} gün.`
             }, { status: 400 });
         }
 
@@ -313,19 +322,31 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Step 2: HR approval (Prefer manager of 'İnsan Kaynakları' department, then any COMPANY_ADMIN)
+        // Step 2: HR approval
+        // Priority: İK dept manager → any İK dept MANAGER → any COMPANY_ADMIN → any other MANAGER
         let hrAdminId = null;
 
         const hrDept = await prisma.department.findFirst({
             where: {
-                name: 'İnsan Kaynakları',
+                name: { in: ['İnsan Kaynakları', 'İK'] },
                 companyId: session.user.companyId
             }
         });
 
         if (hrDept?.managerId) {
             hrAdminId = hrDept.managerId;
-        } else {
+        } else if (hrDept) {
+            const hrMember = await prisma.employee.findFirst({
+                where: {
+                    departmentId: hrDept.id,
+                    user: { role: { in: ['MANAGER', 'COMPANY_ADMIN'] } },
+                },
+                select: { userId: true },
+            });
+            hrAdminId = hrMember?.userId || null;
+        }
+
+        if (!hrAdminId) {
             const firstAdmin = await prisma.user.findFirst({
                 where: {
                     role: 'COMPANY_ADMIN',
@@ -333,6 +354,22 @@ export async function POST(request: NextRequest) {
                 },
             });
             hrAdminId = firstAdmin?.id || null;
+        }
+
+        if (!hrAdminId) {
+            const anyManager = await prisma.user.findFirst({
+                where: {
+                    role: 'MANAGER',
+                    companyId: session.user.companyId,
+                    id: {
+                        notIn: [
+                            employee.userId,
+                            ...(approvals.length > 0 ? [approvals[0].approverId] : []),
+                        ],
+                    },
+                },
+            });
+            hrAdminId = anyManager?.id || null;
         }
 
         if (hrAdminId &&
@@ -359,8 +396,8 @@ export async function POST(request: NextRequest) {
                     data: {
                         userId: firstApproval.approverId,
                         companyId: session.user.companyId,
-                        title: 'Yeni İzin Talebi',
-                        message: `${session.user.name} yeni bir izin talebi oluşturdu. Onayınız bekleniyor.`,
+                        title: tLeaves('newRequestNotificationTitle') || 'Yeni İzin Talebi',
+                        message: tLeaves('newRequestNotificationMessage', { name: session.user.name || '' }) || `${session.user.name || ''} yeni bir izin talebi oluşturdu. Onayınız bekleniyor.`,
                         link: `/dashboard/leaves/${leaveRequest.id}`,
                     }
                 });
@@ -371,8 +408,8 @@ export async function POST(request: NextRequest) {
                     data: {
                         userId: firstOne.approverId,
                         companyId: session.user.companyId,
-                        title: 'Yeni İzin Talebi',
-                        message: `${session.user.name} yeni bir izin talebi oluşturdu. Onayınız bekleniyor.`,
+                        title: tLeaves('newRequestNotificationTitle') || 'Yeni İzin Talebi',
+                        message: tLeaves('newRequestNotificationMessage', { name: session.user.name || '' }) || `${session.user.name || ''} yeni bir izin talebi oluşturdu. Onayınız bekleniyor.`,
                         link: `/dashboard/leaves/${leaveRequest.id}`,
                     }
                 });

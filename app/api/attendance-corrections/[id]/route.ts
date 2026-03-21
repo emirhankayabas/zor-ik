@@ -52,7 +52,7 @@ export async function GET(
 
         // Access check: Admin or the Employee themselves
         const isOwner = correction.employee.userId === session.user.id;
-        const isAdmin = session.user.role === 'COMPANY_ADMIN';
+        const isAdmin = session.user.role === 'COMPANY_ADMIN' || session.user.role === 'SUPER_ADMIN';
 
         if (!isOwner && !isAdmin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -87,7 +87,7 @@ export async function DELETE(
         }
 
         // Check ownership or admin role
-        if (existing.employee.userId !== session.user.id && session.user.role !== 'COMPANY_ADMIN') {
+        if (existing.employee.userId !== session.user.id && !['COMPANY_ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

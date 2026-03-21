@@ -1,11 +1,13 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { z } from "zod";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { employeeSchema } from "@/lib/validations/employee";
+import { getEmployeeSchema } from "@/lib/validations/employee";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -31,27 +33,35 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, UserCircle, Trash2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Save, Loader2, UserCircle, Trash2, Clock } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import ErrorMessage from "@/components/error-message";
 
 export default function EditEmployeePage({
   params,
 }: {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ id: string }>;
 }) {
-  const { locale, id } = use(params);
+  const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations("employees");
+  const tCommon = useTranslations("common");
+  const tRoles = useTranslations("roles");
+  const tWeekdays = useTranslations("weekdays");
+  const tValidation = useTranslations("validation");
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<any[]>([]);
+  const [selectedWorkingDays, setSelectedWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [selectedShiftId, setSelectedShiftId] = useState<string>("");
 
   const form = useForm({
     resolver: zodResolver(
-      employeeSchema.partial().extend({
+      getEmployeeSchema(tValidation).partial().extend({
         password: z.string().optional().or(z.literal("")),
       }),
     ),
@@ -68,15 +78,14 @@ export default function EditEmployeePage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [deptRes, empRes] = await Promise.all([
-          fetch("/api/departments"),
-          fetch(`/api/employees/${id}`),
+        const [deptRes, empRes, shiftRes] = await Promise.all([
+          fetch(apiUrl("/api/departments")),
+          fetch(apiUrl(`/api/employees/${id}`)),
+          fetch(apiUrl("/api/shifts")),
         ]);
 
-        if (deptRes.ok) {
-          const deptData = await deptRes.json();
-          setDepartments(deptData);
-        }
+        if (deptRes.ok) setDepartments(await deptRes.json());
+        if (shiftRes.ok) setShifts(await shiftRes.json());
 
         if (empRes.ok) {
           const empData = await empRes.json();
@@ -88,79 +97,80 @@ export default function EditEmployeePage({
             role: empData.user.role,
             password: "",
           });
+          setSelectedShiftId(empData.shiftId || "");
+          setSelectedWorkingDays(empData.workingDays || [1, 2, 3, 4, 5]);
         } else {
-          toast.error("Çalışan bilgileri alınamadı");
-          router.push(`/dashboard/employees`);
+          toast.error(t("fetchError"));
+          router.push("/dashboard/employees");
         }
-      } catch (err) {
-        console.error("Data fetch error:", err);
-        toast.error("Veri yüklenirken bir hata oluştu");
-      } finally {
+        } catch (err) {
+          console.error("Data fetch error:", err);
+          toast.error(t("dataLoadError"));
+        } finally {
         setIsLoading(false);
       }
     };
 
     if (id) fetchData();
-  }, [id, locale, router, form]);
+  }, [id, router, form]);
+
+  const toggleWorkingDay = (day: number) => {
+    setSelectedWorkingDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort(),
+    );
+  };
 
   const onSubmit = async (values: any) => {
     setIsSaving(true);
     try {
       const submitData = {
         ...values,
-        departmentId:
-          values.departmentId === "none" ? null : values.departmentId,
+        departmentId: values.departmentId === "none" ? null : values.departmentId,
+        shiftId: selectedShiftId || null,
+        workingDays: selectedWorkingDays,
       };
 
-      if (!submitData.password) {
-        delete submitData.password;
-      }
+      if (!submitData.password) delete submitData.password;
 
-      const response = await fetch(`/api/employees/${id}`, {
+      const response = await fetch(apiUrl(`/api/employees/${id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
       });
 
       if (response.ok) {
-        toast.success("Çalışan başarıyla güncellendi");
-        router.push(`/dashboard/employees`);
+        toast.success(t("updatedSuccess"));
+        router.push("/dashboard/employees");
         router.refresh();
       } else {
         const data = await response.json();
-        toast.error(data.error || "Güncelleme sırasında bir hata oluştu");
+        toast.error(data.error || t("updateError"));
       }
     } catch (err) {
-      toast.error("Bağlantı hatası oluştu");
+      toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        "Bu çalışanı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-      )
-    )
+    if (!confirm(t("deleteConfirm")))
       return;
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/employees/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(apiUrl(`/api/employees/${id}`), { method: "DELETE" });
 
       if (response.ok) {
-        toast.success("Çalışan başarıyla silindi");
-        router.push(`/dashboard/employees`);
+        toast.success(t("deletedSuccess"));
+        router.push("/dashboard/employees");
         router.refresh();
       } else {
         const data = await response.json();
-        toast.error(data.error || "Silme işlemi başarısız oldu");
+        toast.error(data.error || t("deleteError"));
       }
     } catch (err) {
-      toast.error("Bağlantı hatası oluştu");
+      toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);
     }
@@ -182,8 +192,8 @@ export default function EditEmployeePage({
           asChild
           className="-ml-2 text-muted-foreground hover:text-foreground"
         >
-          <Link href={`/dashboard/employees`}>
-            <ArrowLeft className="mr-2 size-4" /> Geri Dön
+          <Link href="/dashboard/employees">
+            <ArrowLeft className="mr-2 size-4" /> {tCommon("back")}
           </Link>
         </Button>
       </div>
@@ -191,10 +201,10 @@ export default function EditEmployeePage({
       <div className="flex items-center justify-between px-2">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Kullanıcı Düzenle
+            {t("editTitle")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Çalışan bilgilerini ve sistem yetkilerini güncelleyin.
+            {t("editSubtitle")}
           </p>
         </div>
         <Button
@@ -209,36 +219,37 @@ export default function EditEmployeePage({
           ) : (
             <Trash2 className="size-3" />
           )}
-          Çalışanı Sil
+          {t("deleteEmployee")}
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20">
-              <UserCircle className="size-5" />
-            </div>
-            <div>
-              <CardTitle className="text-base font-bold">
-                Profil ve Görev Bilgileri
-              </CardTitle>
-              <CardDescription>
-                Kurumsal kimlik ve departman atamaları.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Profil Bilgileri */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20">
+                  <UserCircle className="size-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold">
+                    {t("profileAndTask")}
+                  </CardTitle>
+                  <CardDescription>
+                    {t("profileAndTaskDesc")}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6 pb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel>Ad Soyad</FormLabel>
+                      <FormLabel>{t("fullName")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -252,7 +263,7 @@ export default function EditEmployeePage({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-posta</FormLabel>
+                      <FormLabel>{t("email")}</FormLabel>
                       <FormControl>
                         <Input {...field} type="email" />
                       </FormControl>
@@ -266,7 +277,7 @@ export default function EditEmployeePage({
                   name="position"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Pozisyon / Unvan</FormLabel>
+                      <FormLabel>{t("positionTitle")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -280,19 +291,18 @@ export default function EditEmployeePage({
                   name="departmentId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Departman</FormLabel>
+                      <FormLabel>{t("department")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                         value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Departman Seçin" />
+                            <SelectValue placeholder={t("selectDepartmentPlaceholder")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Atanmamış</SelectItem>
+                          <SelectItem value="none">{tCommon("unassigned")}</SelectItem>
                           {departments.map((dept) => (
                             <SelectItem key={dept.id} value={dept.id}>
                               {dept.name}
@@ -310,26 +320,25 @@ export default function EditEmployeePage({
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sistem Rolü</FormLabel>
+                      <FormLabel>{t("systemRole")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                         value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Rol Seçin" />
+                            <SelectValue placeholder={t("selectRolePlaceholder")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="EMPLOYEE">
-                            Çalışan (Standart)
+                            {tRoles("employeeStandard")}
                           </SelectItem>
                           <SelectItem value="MANAGER">
-                            Birim Yöneticisi
+                            {tRoles("unitManager")}
                           </SelectItem>
                           <SelectItem value="COMPANY_ADMIN">
-                            İK / Şirket Yöneticisi
+                            {tRoles("hrManager")}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -343,37 +352,106 @@ export default function EditEmployeePage({
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Yeni Şifre (Opsiyonel)</FormLabel>
+                      <FormLabel>{t("newPassword")}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="password"
-                          placeholder="Değiştirmek için yazın"
+                          placeholder={t("newPasswordPlaceholder")}
                         />
                       </FormControl>
                       <FormDescription className="text-xs ml-2">
-                        Boş bırakılırsa mevcut şifre korunur.
+                        {t("currentPasswordKeep")}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="flex justify-end pb-4">
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Save className="size-4" />
-                  )}
-                  Değişiklikleri Kaydet
-                </Button>
+          {/* Vardiya ve Çalışma */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20">
+                  <Clock className="size-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold">
+                    {t("shiftAndWorkDays")}
+                  </CardTitle>
+                  <CardDescription>
+                    {t("shiftAndWorkDaysDesc")}
+                  </CardDescription>
+                </div>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="pt-6 pb-4 space-y-6">
+              <div className="space-y-2">
+                <Label>{t("shift")}</Label>
+                <Select
+                  value={selectedShiftId || "none"}
+                  onValueChange={(val) => setSelectedShiftId(val === "none" ? "" : val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("selectShift")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{tCommon("unassigned")}</SelectItem>
+                    {shifts.map((shift) => (
+                      <SelectItem key={shift.id} value={shift.id}>
+                        {shift.name} ({shift.startTime} - {shift.endTime})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>{t("workingDays")}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 1, label: tWeekdays("mon") },
+                    { id: 2, label: tWeekdays("tue") },
+                    { id: 3, label: tWeekdays("wed") },
+                    { id: 4, label: tWeekdays("thu") },
+                    { id: 5, label: tWeekdays("fri") },
+                    { id: 6, label: tWeekdays("sat") },
+                    { id: 0, label: tWeekdays("sun") },
+                  ].map((day) => (
+                    <Button
+                      key={day.id}
+                      type="button"
+                      variant={selectedWorkingDays.includes(day.id) ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={() => toggleWorkingDay(day.id)}
+                    >
+                      {day.label}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">
+                  {t("shiftAndWorkDaysDesc")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end pb-4">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {t("saveChanges")}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

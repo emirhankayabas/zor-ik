@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,14 +29,16 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import ErrorMessage from "@/components/error-message";
+import { useTranslations } from "next-intl";
 
-const departmentSchema = z.object({
-  name: z.string().min(2, "Departman adı en az 2 karakter olmalıdır"),
-});
+import { getDepartmentSchema } from "@/lib/validations/employee";
 
-type DepartmentFormValues = z.infer<typeof departmentSchema>;
+type DepartmentFormValues = z.infer<ReturnType<typeof getDepartmentSchema>>;
 
 export default function NewDepartmentPage() {
+  const t = useTranslations("departments");
+  const tc = useTranslations("common");
+  const tv = useTranslations("validation");
   const router = useRouter();
       const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export default function NewDepartmentPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<DepartmentFormValues>({
-    resolver: zodResolver(departmentSchema),
+    resolver: zodResolver(getDepartmentSchema(tv)),
   });
 
   const onSubmit = async (data: DepartmentFormValues) => {
@@ -54,7 +57,7 @@ export default function NewDepartmentPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/departments", {
+      const response = await fetch(apiUrl("/api/departments"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -63,7 +66,7 @@ export default function NewDepartmentPage() {
       if (!response.ok) {
         const result = await response.json();
         throw new Error(
-          result.error || "Departman oluşturulurken bir hata oluştu",
+          result.error || t("createError"),
         );
       }
 
@@ -88,10 +91,10 @@ export default function NewDepartmentPage() {
               <CheckCircle2 className="size-8" />
             </div>
             <h2 className="text-2xl font-black text-foreground">
-              Departman Hazır!
+              {t("createSuccess")}
             </h2>
             <p className="text-muted-foreground font-medium">
-              Yeni birim başarıyla tanımlandı, yönlendiriliyorsunuz...
+              {t("createSuccessDesc")}
             </p>
           </CardContent>
         </Card>
@@ -111,10 +114,10 @@ export default function NewDepartmentPage() {
 
       <div className="space-y-1">
         <CardTitle className="text-xl mb-0.5 font-medium">
-          Yeni Departman
+          {t("newTitle")}
         </CardTitle>
         <CardDescription>
-          Şirket hiyerarşisine yeni bir organizasyon birimi ekleyin.
+          {t("newSubtitle")}
         </CardDescription>
       </div>
 
@@ -122,7 +125,7 @@ export default function NewDepartmentPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Departman Adı *</Label>
+              <Label htmlFor="name">{t("nameLabel")} *</Label>
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                   <Building size="16" className="text-muted-foreground" />
@@ -131,7 +134,7 @@ export default function NewDepartmentPage() {
                 <Input
                   {...register("name")}
                   id="name"
-                  placeholder="Örn: Yazılım Geliştirme, İnsan Kaynakları..."
+                  placeholder={t("namePlaceholder")}
                   className="pl-8"
                 />
               </div>
@@ -142,8 +145,7 @@ export default function NewDepartmentPage() {
 
             <div className="py-4">
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Yeni bir departman oluşturduğunuzda, çalışanları bu birime
-                atayabilir ve bir departman yöneticisi belirleyebilirsiniz.
+                {t("createInfo")}
               </p>
             </div>
           </CardContent>
@@ -151,14 +153,14 @@ export default function NewDepartmentPage() {
 
         {error && (
           <Alert variant="destructive" className="rounded-xl">
-            <AlertTitle className="font-bold">Hata Oluştu</AlertTitle>
+            <AlertTitle className="font-bold">{tc("errorOccurred")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         <div className="flex justify-end gap-4 pt-2">
           <Button variant="outline" onClick={() => router.back()}>
-            Vazgeç
+            {tc("cancel")}
           </Button>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (
@@ -166,7 +168,7 @@ export default function NewDepartmentPage() {
             ) : (
               <Plus className="h-4 w-4" />
             )}
-            Departmanı Oluştur
+            {t("createBtn")}
           </Button>
         </div>
       </form>

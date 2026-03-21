@@ -8,10 +8,12 @@ import {
 } from "@/components/ui/card";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Separator } from "@/components/ui/separator";
-import { User, Shield, Bell, Palette, Building, Mail } from "lucide-react";
+import { User, Shield, Bell, Palette, Languages, Building, Mail } from "lucide-react";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { LanguageSelector } from "@/components/language-selector";
+import { getTranslations } from "next-intl/server";
 
 export default async function SettingsPage({
 }: {
@@ -20,12 +22,14 @@ export default async function SettingsPage({
 
   if (!session) return null;
 
+  const t = await getTranslations("settings");
+
   return (
     <div className="flex flex-col gap-12 max-w-4xl px-4 pb-12">
       <div className="space-y-1">
-        <CardTitle>Ayarlar</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Sistem tercihlerini ve hesap ayarlarını buradan yönetebilirsiniz.
+          {t("subtitle")}
         </CardDescription>
       </div>
 
@@ -37,22 +41,25 @@ export default async function SettingsPage({
                 <Palette className="size-4" />
               </div>
               <div>
-                <CardTitle>Görünüm</CardTitle>
+                <CardTitle>{t("appearance")}</CardTitle>
                 <CardDescription>
-                  Uygulamanın nasıl görüneceğini özelleştirin.
+                  {t("appearanceDesc")}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="flex items-center justify-between mt-4 pb-4">
             <div className="space-y-1">
-              <p className="text-sm font-bold">Tema Modu</p>
+              <p className="text-sm font-bold">{t("themeMode")}</p>
               <p className="text-xs text-muted-foreground font-medium opacity-70">
-                Sistem genelinde koyu veya açık tema kullanımını belirleyin.
+                {t("themeModeDesc")}
               </p>
             </div>
 
             <ModeToggle />
+          </CardContent>
+          <CardContent className="pb-4">
+            <LanguageSelector />
           </CardContent>
         </Card>
 
@@ -63,9 +70,9 @@ export default async function SettingsPage({
                 <User className="size-4" />
               </div>
               <div>
-                <CardTitle>Profil Bilgileri</CardTitle>
+                <CardTitle>{t("profile")}</CardTitle>
                 <CardDescription>
-                  Kişisel bilgilerinizi ve profil fotoğrafınızı güncelleyin.
+                  {t("profileDesc")}
                 </CardDescription>
               </div>
             </div>
@@ -73,7 +80,7 @@ export default async function SettingsPage({
           <CardContent className="mt-4 pb-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2">
-                <Label htmlFor="companyName">Ad Soyad</Label>
+                <Label htmlFor="companyName">{t("fullName")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <User size="16" className="text-muted-foreground" />
@@ -85,7 +92,7 @@ export default async function SettingsPage({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="companyName">E-posta Adresi</Label>
+                <Label htmlFor="companyName">{t("emailAddress")}</Label>
                 <div className="relative">
                   <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                     <Mail size="16" className="text-muted-foreground" />
@@ -106,9 +113,9 @@ export default async function SettingsPage({
                 <Shield className="size-4" />
               </div>
               <div>
-                <CardTitle>Güvenlik</CardTitle>
+                <CardTitle>{t("security")}</CardTitle>
                 <CardDescription>
-                  Şifre ve iki faktörlü doğrulama ayarları (Yakında).
+                  {t("securityDesc")}
                 </CardDescription>
               </div>
             </div>
@@ -122,9 +129,9 @@ export default async function SettingsPage({
                 <Bell className="size-4" />
               </div>
               <div>
-                <CardTitle>Bildirimler</CardTitle>
+                <CardTitle>{t("notifications")}</CardTitle>
                 <CardDescription>
-                  E-posta ve sistem bildirimlerini yönetin (Yakında).
+                  {t("notificationsDesc")}
                 </CardDescription>
               </div>
             </div>

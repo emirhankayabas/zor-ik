@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
-import { employeeSchema } from '@/lib/validations/employee';
+import { getEmployeeSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 import bcrypt from 'bcryptjs';
 
 export async function GET(
@@ -32,12 +33,19 @@ export async function GET(
                         name: true,
                     },
                 },
+                shift: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
             },
         });
 
         if (!employee) {
+            const tEmployees = await getTranslations('employees');
             return NextResponse.json(
-                { error: 'Çalışan bulunamadı' },
+                { error: tEmployees('notFound') || 'Çalışan bulunamadı' },
                 { status: 404 }
             );
         }
@@ -45,8 +53,9 @@ export async function GET(
         return NextResponse.json(employee);
     } catch (error: any) {
         console.error('Get employee error:', error);
+        const tEmployees = await getTranslations('employees');
         return NextResponse.json(
-            { error: 'Çalışan bilgileri alınırken bir hata oluştu' },
+            { error: tEmployees('fetchErrorDetail') || 'Çalışan bilgileri alınırken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -67,15 +76,16 @@ export async function PATCH(
         });
 
         if (!employee) {
-            return NextResponse.json({ error: 'Çalışan bulunamadı' }, { status: 404 });
+            const tEmployees = await getTranslations('employees');
+            return NextResponse.json({ error: tEmployees('notFound') || 'Çalışan bulunamadı' }, { status: 404 });
         }
 
-        const { password, name, email, role, position, departmentId, ...rest } = body;
+        const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive, ...rest } = body;
 
         // Update in transaction
         await prisma.$transaction(async (tx: any) => {
             // Update user record if user-related fields are provided
-            if (name || email || role || password) {
+            if (name || email || role || password || isActive !== undefined) {
                 await tx.user.update({
                     where: { id: employee.userId },
                     data: {
@@ -83,28 +93,33 @@ export async function PATCH(
                         ...(email && { email }),
                         ...(role && { role }),
                         ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+                        ...(isActive !== undefined ? { isActive } : {}),
                     }
                 });
             }
 
             // Update employee record
-            // We check undefined to allow setting departmentId to null
-            if (position !== undefined || departmentId !== undefined) {
+            const employeeUpdate: any = {};
+            if (position !== undefined) employeeUpdate.position = position;
+            if (departmentId !== undefined) employeeUpdate.departmentId = departmentId;
+            if (shiftId !== undefined) employeeUpdate.shiftId = shiftId || null;
+            if (workingDays !== undefined) employeeUpdate.workingDays = workingDays;
+
+            if (Object.keys(employeeUpdate).length > 0) {
                 await tx.employee.update({
                     where: { id },
-                    data: {
-                        ...(position !== undefined && { position }),
-                        ...(departmentId !== undefined && { departmentId }),
-                    }
+                    data: employeeUpdate,
                 });
             }
         });
 
-        return NextResponse.json({ message: 'Çalışan başarıyla güncellendi' });
+        const tEmployees = await getTranslations('employees');
+        return NextResponse.json({ message: tEmployees('updateSuccess') || 'Çalışan başarıyla güncellendi' });
     } catch (error: any) {
         console.error('Update employee error:', error);
+        const tEmployees = await getTranslations('employees');
         return NextResponse.json(
-            { error: 'Çalışan güncellenirken bir hata oluştu' },
+            { error: tEmployees('updateError') || 'Çalışan güncellenirken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -123,7 +138,8 @@ export async function DELETE(
         });
 
         if (!employee) {
-            return NextResponse.json({ error: 'Çalışan bulunamadı' }, { status: 404 });
+            const tEmployees = await getTranslations('employees');
+            return NextResponse.json({ error: tEmployees('notFound') || 'Çalışan bulunamadı' }, { status: 404 });
         }
 
         // Delete user (cascade will handle employee)
@@ -131,11 +147,13 @@ export async function DELETE(
             where: { id: employee.userId }
         });
 
-        return NextResponse.json({ message: 'Çalışan başarıyla silindi' });
+        const tEmployees = await getTranslations('employees');
+        return NextResponse.json({ message: tEmployees('deleteSuccess') || 'Çalışan başarıyla silindi' });
     } catch (error: any) {
         console.error('Delete employee error:', error);
+        const tEmployees = await getTranslations('employees');
         return NextResponse.json(
-            { error: 'Çalışan silinirken bir hata oluştu' },
+            { error: tEmployees('deleteError') || 'Çalışan silinirken bir hata oluştu' },
             { status: 500 }
         );
     }

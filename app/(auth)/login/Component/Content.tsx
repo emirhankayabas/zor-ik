@@ -6,7 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { loginSchema, type LoginInput } from "@/lib/validations/auth";
+import { useTranslations } from "next-intl";
+import { getLoginSchema, type LoginInput } from "@/lib/validations/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,9 @@ interface Props {
 }
 
 export default function Content({ locale }: Props) {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("validation");
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +40,7 @@ export default function Content({ locale }: Props) {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(getLoginSchema(tValidation)),
   });
 
   const onSubmit = async (data: LoginInput) => {
@@ -51,14 +55,14 @@ export default function Content({ locale }: Props) {
       });
 
       if (result?.error) {
-        setError("E-posta veya şifre hatalı");
+        setError(t("loginError"));
         return;
       }
 
       router.push(`/dashboard`);
       router.refresh();
     } catch (err) {
-      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
+      setError(t("genericError"));
     } finally {
       setIsLoading(false);
     }
@@ -68,9 +72,9 @@ export default function Content({ locale }: Props) {
     <div className="min-h-screen flex items-center justify-center p-4 lg:p-8 bg-muted/30">
       <Card className="w-full max-w-md border-border/50 shadow-xl overflow-hidden backdrop-blur-sm bg-background/95">
         <CardHeader className="pb-6 gap-0.5!">
-          <CardTitle>Tekrar Hoş Geldiniz</CardTitle>
+          <CardTitle>{t("welcomeBack")}</CardTitle>
           <CardDescription>
-            Lütfen devam etmek için hesabınıza giriş yapın
+            {t("loginSubtitle")}
           </CardDescription>
         </CardHeader>
 
@@ -82,13 +86,13 @@ export default function Content({ locale }: Props) {
                 className="animate-in fade-in slide-in-from-top-2 duration-300"
               >
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Hata</AlertTitle>
+                <AlertTitle>{tCommon("error")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-posta</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                   <Mail size="16" className="text-muted-foreground" />
@@ -97,7 +101,7 @@ export default function Content({ locale }: Props) {
                   {...register("email")}
                   id="email"
                   type="email"
-                  placeholder="ornek@sirket.com"
+                  placeholder={t("email")}
                   className="pl-10"
                   disabled={isLoading}
                 />
@@ -109,12 +113,12 @@ export default function Content({ locale }: Props) {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Şifre</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <Link
                   href="/forgot-password"
                   className="text-xs text-primary hover:underline mr-2"
                 >
-                  Şifremi Unuttum
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -143,10 +147,10 @@ export default function Content({ locale }: Props) {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Giriş yapılıyor...
+                  {t("loggingIn")}
                 </>
               ) : (
-                "Giriş Yap"
+                t("login")
               )}
             </Button>
           </form>
@@ -154,12 +158,12 @@ export default function Content({ locale }: Props) {
 
         <CardFooter className="flex flex-col py-3! border-t">
           <p className="text-sm text-center text-muted-foreground">
-            Hesabınız yok mu?{" "}
+            {t("noAccount")}{" "}
             <Link
               href="/register"
               className="font-bold text-primary hover:underline"
             >
-              Hemen Kayıt Olun
+              {t("registerNow")}
             </Link>
           </p>
         </CardFooter>

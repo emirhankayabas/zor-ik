@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
-import { departmentSchema } from '@/lib/validations/employee';
+import { getDepartmentSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 
 export async function GET(
     request: NextRequest,
@@ -28,8 +29,9 @@ export async function GET(
         });
 
         if (!department) {
+            const tDepartments = await getTranslations('departments');
             return NextResponse.json(
-                { error: 'Departman bulunamadı' },
+                { error: tDepartments('notFound') || 'Departman bulunamadı' },
                 { status: 404 }
             );
         }
@@ -37,8 +39,9 @@ export async function GET(
         return NextResponse.json(department);
     } catch (error: any) {
         console.error('Get department error:', error);
+        const tDepartments = await getTranslations('departments');
         return NextResponse.json(
-            { error: 'Departman bilgileri alınırken bir hata oluştu' },
+            { error: tDepartments('fetchErrorDetail') || 'Departman bilgileri alınırken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -50,10 +53,11 @@ export async function PATCH(
 ) {
     try {
         const companyId = await getCompanyId();
+        const tValidation = await getTranslations('validation');
         const body = await request.json();
         const { id } = await params;
 
-        const validatedData = departmentSchema.parse(body);
+        const validatedData = getDepartmentSchema(tValidation).parse(body);
 
         const department = await prisma.department.update({
             where: {
@@ -69,8 +73,9 @@ export async function PATCH(
         return NextResponse.json(department);
     } catch (error: any) {
         console.error('Update department error:', error);
+        const tDepartments = await getTranslations('departments');
         return NextResponse.json(
-            { error: 'Departman güncellenirken bir hata oluştu' },
+            { error: tDepartments('updateError') || 'Departman güncellenirken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -91,8 +96,9 @@ export async function DELETE(
         });
 
         if (deptToDelete?.name === 'İK' || deptToDelete?.name === 'İnsan Kaynakları') {
+            const tDepartments = await getTranslations('departments');
             return NextResponse.json(
-                { error: 'İnsan Kaynakları departmanı silinemez' },
+                { error: tDepartments('cannotDeleteHR') || 'İnsan Kaynakları departmanı silinemez' },
                 { status: 400 }
             );
         }
@@ -104,11 +110,13 @@ export async function DELETE(
             },
         });
 
-        return NextResponse.json({ message: 'Departman başarıyla silindi' });
+        const tDepartments = await getTranslations('departments');
+        return NextResponse.json({ message: tDepartments('deleteSuccess') || 'Departman başarıyla silindi' });
     } catch (error: any) {
         console.error('Delete department error:', error);
+        const tDepartments = await getTranslations('departments');
         return NextResponse.json(
-            { error: 'Departman silinirken bir hata oluştu' },
+            { error: tDepartments('deleteError') || 'Departman silinirken bir hata oluştu' },
             { status: 500 }
         );
     }

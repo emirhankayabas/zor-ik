@@ -20,6 +20,7 @@ interface DatePickerProps {
     placeholder?: string
     className?: string
     disabled?: boolean
+    disabledDays?: (date: Date) => boolean
 }
 
 export function DatePicker({
@@ -27,7 +28,8 @@ export function DatePicker({
     setDate,
     placeholder = "Tarih seçiniz",
     className,
-    disabled
+    disabled,
+    disabledDays,
 }: DatePickerProps) {
     return (
         <Popover>
@@ -50,6 +52,7 @@ export function DatePicker({
                     mode="single"
                     selected={date}
                     onSelect={setDate}
+                    disabled={disabledDays}
                     initialFocus
                     locale={tr}
                 />

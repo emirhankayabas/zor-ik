@@ -10,10 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import DepartmentList from "./Component/DepartmentList";
+import { getTranslations } from "next-intl/server";
 
 export default async function DepartmentsPage({
 }: {
 }) {
+  const t = await getTranslations("departments");
   const session = await getServerAuthSession();
 
   if (!session) {
@@ -47,15 +49,15 @@ export default async function DepartmentsPage({
       <div className="flex itemscenter justify-between mb-4">
         <div>
           <CardTitle className="text-xl mb-0.5 font-medium">
-            Departman Yapısı
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Organizasyonel birimler ve hiyerarşik yönetim paneli.
+            {t("subtitle")}
           </CardDescription>
         </div>
         <Button asChild>
           <Link href={`/dashboard/departments/new`}>
-            <Plus className="size-4" /> Yeni Departman Oluştur
+            <Plus className="size-4" /> {t("createNew")}
           </Link>
         </Button>
       </div>
@@ -65,7 +67,7 @@ export default async function DepartmentsPage({
           <CardContent className="py-16 gap-y-3 flex flex-col items-center justify-center">
             <Layers size="32" />
             <CardDescription>
-              Şirket yapınızı oluşturmak için ilk departmanı şimdi ekleyin.
+              {t("emptyDesc")}
             </CardDescription>
           </CardContent>
         </Card>

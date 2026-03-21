@@ -1,22 +1,26 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect, useCallback } from "react";
 
 import { useSession } from "next-auth/react";
 import {
+  getStatusStyle,
+  getStatusLabel,
+  getStatusIcon,
+  formatDateLocale,
+} from "@/lib/status-helpers";
+import { useTranslations, useLocale } from "next-intl";
+import {
   Calendar as CalendarIcon,
-  Clock,
   CheckCircle2,
   XCircle,
   MoreHorizontal,
   ArrowRight,
   Info,
   Loader2,
-  AlertCircle,
-  User,
   ChevronDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -37,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -67,6 +72,7 @@ interface LeaveRequest {
     status: string;
     approvalOrder: number;
     approverId: string;
+    comment: string | null;
     approver: {
       id: string;
       name: string;
@@ -79,15 +85,22 @@ interface LeaveRequest {
 
 export default function LeaveApprovalsPage() {
   const { data: session } = useSession();
+  const t = useTranslations("leaveApprovals");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
+  const tRoles = useTranslations("roles");
+  const locale = useLocale();
     
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectComment, setRejectComment] = useState("");
 
   const fetchRequests = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
-      const response = await fetch("/api/leave-requests");
+      const response = await fetch(apiUrl("/api/leave-requests"));
       if (response.ok) {
         const data = await response.json();
         setRequests(data);
@@ -103,13 +116,13 @@ export default function LeaveApprovalsPage() {
     fetchRequests();
   }, [fetchRequests]);
 
-  const handleAction = async (id: string, action: "APPROVED" | "REJECTED") => {
+  const handleAction = async (id: string, action: "APPROVED" | "REJECTED", comment?: string) => {
     setActionLoading(id);
     try {
-      const response = await fetch(`/api/leave-requests/${id}/approve`, {
+      const response = await fetch(apiUrl(`/api/leave-requests/${id}/approve`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, comment }),
       });
 
       if (response.ok) {
@@ -119,45 +132,6 @@ export default function LeaveApprovalsPage() {
       console.error("Action failed:", error);
     } finally {
       setActionLoading(null);
-    }
-  };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-none";
-      case "APPROVED":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-none";
-      case "REJECTED":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-none";
-      default:
-        return "bg-muted text-muted-foreground border-none";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "Beklemede";
-      case "APPROVED":
-        return "Onaylandı";
-      case "REJECTED":
-        return "Reddedildi";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return <Clock className="size-3 mr-1" />;
-      case "APPROVED":
-        return <CheckCircle2 className="size-3 mr-1" />;
-      case "REJECTED":
-        return <XCircle className="size-3 mr-1" />;
-      default:
-        return null;
     }
   };
 
@@ -202,13 +176,13 @@ export default function LeaveApprovalsPage() {
                 <div className="space-y-0.5">
                   <CardTitle>{request.employee.user.name}</CardTitle>
                   <CardDescription className="flex items-center gap-x-2 text-xs">
-                    <span>{request.employee.department?.name || "Genel"}</span>
+                    <span>{request.employee.department?.name || tCommon("general")}</span>
                     <Separator orientation="vertical" className="h-3 mt-0.5" />
                     <div className="flex items-center gap-2">
                       <span>{request.leaveType.name}</span>
-                      {request.leaveType.name === "Yıllık İzin" && request.actualDays > (request.employee.totalLeftLeaveDays || 0) && (
+                      {request.leaveType.name === tCommon("annualLeave") && request.actualDays > (request.employee.totalLeftLeaveDays || 0) && (
                         <Badge variant="outline" className="text-[10px] py-0 h-4 bg-rose-50 text-rose-600 border-rose-200">
-                          Avans İzin
+                          {tCommon("advanceLeave")}
                         </Badge>
                       )}
                     </div>
@@ -218,7 +192,7 @@ export default function LeaveApprovalsPage() {
               <div className="flex items-center gap-3 self-end sm:self-center">
                 <Badge className={`${getStatusStyle(request.status)}`}>
                   {getStatusIcon(request.status)}
-                  {getStatusLabel(request.status)}
+                  {getStatusLabel(request.status, tStatus)}
                 </Badge>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -229,7 +203,7 @@ export default function LeaveApprovalsPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/leaves/${request.id}`}>
-                        Talep Detayları
+                        {tCommon("requestDetails")}
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -246,16 +220,9 @@ export default function LeaveApprovalsPage() {
                       <CalendarIcon className="size-5" />
                     </div>
                     <div>
-                      <CardDescription>Başlangıç</CardDescription>
+                      <CardDescription>{tCommon("startDate")}</CardDescription>
                       <p className="text-sm font-bold">
-                        {new Date(request.startDate).toLocaleDateString(
-                          "tr-TR",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          },
-                        )}
+                        {formatDateLocale(request.startDate, locale)}
                       </p>
                     </div>
                   </div>
@@ -265,13 +232,9 @@ export default function LeaveApprovalsPage() {
                       <CalendarIcon className="size-5" />
                     </div>
                     <div>
-                      <CardDescription>Bitiş</CardDescription>
+                      <CardDescription>{tCommon("endDate")}</CardDescription>
                       <p className="text-sm font-bold">
-                        {new Date(request.endDate).toLocaleDateString("tr-TR", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        {formatDateLocale(request.endDate, locale)}
                       </p>
                     </div>
                   </div>
@@ -279,7 +242,7 @@ export default function LeaveApprovalsPage() {
                 <div className="flex items-start gap-4">
                   <Info className="size-4 text-primary mt-0.5 opacity-50" />
                   <div>
-                    <CardDescription>Talep Gerekçesi</CardDescription>
+                    <CardDescription>{tCommon("reason")}</CardDescription>
                     <CardDescription className="text-foreground mt-1">
                       "{request.reason}"
                     </CardDescription>
@@ -289,7 +252,7 @@ export default function LeaveApprovalsPage() {
 
               <div className="lg:col-span-4 border-l pl-8 space-y-6">
                 <div>
-                  <CardTitle className="text-sm">Onay Akışı</CardTitle>
+                  <CardTitle className="text-sm">{tCommon("approvalFlow")}</CardTitle>
                   <div className="space-y-6 mt-4">
                     {request.approvals
                       .sort((a, b) => a.approvalOrder - b.approvalOrder)
@@ -327,13 +290,18 @@ export default function LeaveApprovalsPage() {
                             <p className="text-[10px] text-muted-foreground uppercase">
                               {approval.approver.managedDepts?.[0]?.name ||
                                 (approval.approver.role === "COMPANY_ADMIN"
-                                  ? "İK Yöneticisi"
-                                  : "Birim Yöneticisi")}{" "}
+                                  ? tRoles("hrManager")
+                                  : tRoles("unitManager"))}{" "}
                               ·{" "}
                               {approval.status === "PENDING"
-                                ? "Bekliyor"
-                                : "İşlendi"}
+                                ? tStatus("pending")
+                                : tStatus("processed")}
                             </p>
+                            {approval.comment && (
+                              <p className="text-[10px] text-muted-foreground italic mt-0.5 font-medium">
+                                &quot;{approval.comment}&quot;
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -343,35 +311,45 @@ export default function LeaveApprovalsPage() {
             </div>
           </CardContent>
           {myApproval?.status === "PENDING" && (
-            <CardFooter className="bg-muted/10 border-t py-3 flex justify-end items-center sm:px-6">
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleAction(request.id, "REJECTED")}
-                  disabled={isProcessing}
-                >
-                  Reddet
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => handleAction(request.id, "APPROVED")}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    "Hemen Onayla"
-                  )}
-                </Button>
-              </div>
+            <CardFooter className="bg-muted/10 border-t py-3 flex flex-col gap-2 sm:px-6">
+              {rejectingId === request.id ? (
+                <div className="w-full space-y-2">
+                  <Textarea
+                    placeholder={tCommon("writeRejectReason")}
+                    value={rejectComment}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectComment(e.target.value)}
+                    className="min-h-[60px] text-sm"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => { setRejectingId(null); setRejectComment(""); }}>
+                      {tCommon("cancel")}
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => { handleAction(request.id, "REJECTED", rejectComment); setRejectingId(null); setRejectComment(""); }} disabled={!!actionLoading}>
+                      {tCommon("reject")}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-end gap-2 w-full">
+                  <Button variant="destructive" size="sm" onClick={() => setRejectingId(request.id)} disabled={!!actionLoading}>
+                    {tCommon("reject")}
+                  </Button>
+                  <Button size="sm" onClick={() => handleAction(request.id, "APPROVED")} disabled={!!actionLoading}>
+                    {actionLoading === request.id ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      tCommon("approve")
+                    )}
+                  </Button>
+                </div>
+              )}
             </CardFooter>
           )}
         </Card>
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/dashboard/leaves/${request.id}`}>
-              Kayıt Günlüğünü İncele <ChevronDown className="size-3" />
+              {tCommon("viewDetails")} <ChevronDown className="size-3" />
             </Link>
           </Button>
         </div>
@@ -391,19 +369,19 @@ export default function LeaveApprovalsPage() {
   return (
     <div className="flex flex-col gap-8 px-4 pb-12">
       <div>
-        <CardTitle className="text-xl font-bold">İzin Onayları</CardTitle>
+        <CardTitle className="text-xl font-bold">{t("title")}</CardTitle>
         <CardDescription>
-          Yönetici veya İK olarak onayınızı bekleyen personel izin talepleri.
+          {t("subtitle")}
         </CardDescription>
       </div>
 
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="mb-6 bg-muted/50">
           <TabsTrigger value="pending" className="px-8">
-            Bekleyenler
+            {tCommon("pending")}
           </TabsTrigger>
           <TabsTrigger value="processed" className="px-8">
-            Geçmiş İşlemler
+            {tCommon("processed")}
           </TabsTrigger>
         </TabsList>
 
@@ -413,7 +391,7 @@ export default function LeaveApprovalsPage() {
               <Card className="border-dashed py-12 text-center">
                 <CheckCircle2 className="size-12 text-muted-foreground/30 mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  Şu an onayınızı bekleyen talep bulunmuyor.
+                  {tCommon("noPendingRequests")}
                 </p>
               </Card>
             ) : (
@@ -430,7 +408,7 @@ export default function LeaveApprovalsPage() {
               <Card className="border-dashed py-12 text-center">
                 <Info className="size-12 text-muted-foreground/30 mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  Geçmişte işlem yaptığınız bir talep bulunmuyor.
+                  {tCommon("noPastRequests")}
                 </p>
               </Card>
             ) : (

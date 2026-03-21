@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import {
     Clock,
     Send,
 } from "lucide-react";
+import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
     Card,
@@ -36,15 +38,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import ErrorMessage from "@/components/error-message";
+import { toLocalDateString } from "@/lib/status-helpers";
 
-const leaveSchema = z.object({
-    leaveTypeId: z.string().min(1, "Lütfen bir izin türü seçiniz"),
-    startDate: z.string().min(1, "Başlangıç tarihi zorunludur"),
-    endDate: z.string().min(1, "Bitiş tarihi zorunludur"),
-    reason: z.string().min(5, "Gerekçe en az 5 karakter olmalıdır"),
-});
+import { getLeaveRequestSchema } from "@/lib/validations/employee";
+import { useTranslations } from "next-intl";
 
-type LeaveFormValues = z.infer<typeof leaveSchema>;
+type LeaveFormValues = z.infer<ReturnType<typeof getLeaveRequestSchema>>;
 
 export default function EditLeavePage({
     params,
@@ -53,6 +52,9 @@ export default function EditLeavePage({
 }) {
     const { locale, id } = use(params);
     const router = useRouter();
+    const t = useTranslations("leaves");
+    const tCommon = useTranslations("common");
+    const tValidation = useTranslations("validation");
 
     const [isLoading, setIsLoading] = useState(false);
     const [isPageLoading, setIsPageLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function EditLeavePage({
         reset,
         formState: { errors },
     } = useForm<LeaveFormValues>({
-        resolver: zodResolver(leaveSchema),
+        resolver: zodResolver(getLeaveRequestSchema(tValidation)),
     });
 
     const startDate = watch("startDate");
@@ -79,13 +81,13 @@ export default function EditLeavePage({
         const fetchData = async () => {
             try {
                 // Fetch leave types
-                const typesRes = await fetch("/api/leave-types");
+                const typesRes = await fetch(apiUrl("/api/leave-types"));
                 const typesData = await typesRes.json();
                 setLeaveTypes(typesData);
                 setIsFetchingLeaveTypes(false);
 
                 // Fetch leave request detail
-                const requestRes = await fetch(`/api/leave-requests/${id}`);
+                const requestRes = await fetch(apiUrl(`/api/leave-requests/${id}`));
                 if (!requestRes.ok) {
                     router.push(`/dashboard/leaves`);
                     return;
@@ -93,7 +95,7 @@ export default function EditLeavePage({
                 const requestData = await requestRes.json();
 
                 if (requestData.status !== "PENDING") {
-                    setError("Sadece beklemedeki talepler düzenlenebilir.");
+                    setError(t("onlyPendingEditable"));
                     setTimeout(() => {
                         router.push(`/dashboard/leaves`);
                     }, 3000);
@@ -103,13 +105,13 @@ export default function EditLeavePage({
                 // Pre-fill form
                 reset({
                     leaveTypeId: requestData.leaveTypeId,
-                    startDate: new Date(requestData.startDate).toISOString().split('T')[0],
-                    endDate: new Date(requestData.endDate).toISOString().split('T')[0],
+                    startDate: toLocalDateString(new Date(requestData.startDate)),
+                    endDate: toLocalDateString(new Date(requestData.endDate)),
                     reason: requestData.reason,
                 });
             } catch (err) {
                 console.error("Error fetching data:", err);
-                setError("Veriler yüklenirken bir hata oluştu");
+                setError(t("fetchError"));
             } finally {
                 setIsPageLoading(false);
             }
@@ -123,7 +125,7 @@ export default function EditLeavePage({
         setError(null);
 
         try {
-            const response = await fetch(`/api/leave-requests/${id}`, {
+            const response = await fetch(apiUrl(`/api/leave-requests/${id}`), {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),
@@ -131,7 +133,7 @@ export default function EditLeavePage({
 
             if (!response.ok) {
                 const result = await response.json();
-                throw new Error(result.error || "İzin talebi güncellenirken bir hata oluştu");
+                throw new Error(result.error || t("updateError"));
             }
 
             setSuccess(true);
@@ -163,10 +165,10 @@ export default function EditLeavePage({
                             <CheckCircle2 className="size-8" />
                         </div>
                         <h2 className="text-2xl font-black text-foreground">
-                            Değişiklikler Kaydedildi!
+                            {t("changesSaved")}
                         </h2>
                         <p className="text-muted-foreground font-medium">
-                            İzin talebiniz güncellendi. Yönlendiriliyorsunuz...
+                            {t("changesSavedDesc")}
                         </p>
                     </CardContent>
                 </Card>
@@ -186,10 +188,10 @@ export default function EditLeavePage({
 
             <div className="space-y-2">
                 <CardTitle className="text-xl mb-0.5 font-medium">
-                    İzin Talebini Düzenle
+                    {t("editTitle")}
                 </CardTitle>
                 <CardDescription>
-                    Talebiniz henüz işleme alınmadığı için detaylarını güncelleyebilirsiniz.
+                    {t("editSubtitle")}
                 </CardDescription>
             </div>
 
@@ -198,15 +200,15 @@ export default function EditLeavePage({
                     <CardHeader className="flex items-center gap-x-4">
                         <Clock className="size-5 text-primary" />
                         <div>
-                            <CardTitle>İzin Detayları</CardTitle>
+                            <CardTitle>{t("leaveDetails")}</CardTitle>
                             <CardDescription>
-                                İzin türü ve gerekçesini belirtin.
+                                {t("leaveDetailsDesc")}
                             </CardDescription>
                         </div>
                     </CardHeader>
                     <CardContent className="pb-4 space-y-6 mt-8">
                         <div className="space-y-2">
-                            <Label htmlFor="leaveTypeId">İzin Türü *</Label>
+                            <Label htmlFor="leaveTypeId">{t("leaveType")} *</Label>
 
                             <div className="relative">
                                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -216,9 +218,10 @@ export default function EditLeavePage({
                                 <Select
                                     onValueChange={(value) => setValue("leaveTypeId", value)}
                                     disabled={isFetchingLeaveTypes || leaveTypes.length === 0}
+                                    defaultValue={watch("leaveTypeId")}
                                 >
                                     <SelectTrigger className="pl-8">
-                                        <SelectValue placeholder="İzin türü seçiniz" />
+                                        <SelectValue placeholder={t("selectLeaveType")} />
                                     </SelectTrigger>
                                     <SelectContent position="popper" sideOffset={4}>
                                         {leaveTypes.map((type) => (
@@ -236,13 +239,13 @@ export default function EditLeavePage({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="startDate">Başlangıç Tarihi *</Label>
+                                <Label htmlFor="startDate">{t("startDate")} *</Label>
 
                                 <div className="relative">
                                     <DatePicker
                                         date={startDate ? new Date(startDate) : undefined}
-                                        setDate={(date) => setValue("startDate", date ? date.toISOString().split("T")[0] : "")}
-                                        placeholder="Başlangıç tarihi"
+                                        setDate={(date) => setValue("startDate", date ? toLocalDateString(date) : "")}
+                                        placeholder={t("startDate")}
                                     />
                                 </div>
                                 {errors.startDate && (
@@ -251,13 +254,13 @@ export default function EditLeavePage({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="endDate">Bitiş Tarihi *</Label>
+                                <Label htmlFor="endDate">{t("endDate")} *</Label>
 
                                 <div className="relative">
                                     <DatePicker
                                         date={endDate ? new Date(endDate) : undefined}
-                                        setDate={(date) => setValue("endDate", date ? date.toISOString().split("T")[0] : "")}
-                                        placeholder="Bitiş tarihi"
+                                        setDate={(date) => setValue("endDate", date ? toLocalDateString(date) : "")}
+                                        placeholder={t("endDate")}
                                     />
                                 </div>
                                 {errors.endDate && (
@@ -269,11 +272,11 @@ export default function EditLeavePage({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="reason">Talep Gerekçesi *</Label>
+                            <Label htmlFor="reason">{t("reason")} *</Label>
                             <Textarea
                                 {...register("reason")}
                                 id="reason"
-                                placeholder="İzin talebinizin detaylarını buraya yazınız..."
+                                placeholder={t("reasonPlaceholder")}
                                 className="min-h-30"
                             />
                             {errors.reason && (
@@ -285,14 +288,14 @@ export default function EditLeavePage({
 
                 {error && (
                     <Alert variant="destructive">
-                        <AlertTitle>Hata Oluştu</AlertTitle>
+                        <AlertTitle>{tCommon("errorOccurred")}</AlertTitle>
                         <AlertDescription className="mt-1">{error}</AlertDescription>
                     </Alert>
                 )}
 
                 <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => router.back()}>
-                        Vazgeç
+                        {tCommon("cancel")}
                     </Button>
                     <Button type="submit" disabled={isLoading} className="gap-2">
                         {isLoading ? (
@@ -300,7 +303,7 @@ export default function EditLeavePage({
                         ) : (
                             <>
                                 <Send className="h-4 w-4" />
-                                Değişiklikleri Kaydet
+                                {tCommon("saveChanges")}
                             </>
                         )}
                     </Button>

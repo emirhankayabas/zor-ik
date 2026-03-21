@@ -4,17 +4,9 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from '@/components/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { ModeToggle } from '@/components/mode-toggle';
-import { ChevronRight } from 'lucide-react';
 import { NotificationBell } from '@/components/notification-bell';
+import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
 
 export default async function DashboardLayout({
     children,
@@ -36,19 +28,7 @@ export default async function DashboardLayout({
                         <div className="flex items-center gap-4">
                             <SidebarTrigger className="-ml-2 h-8 w-8 text-muted-foreground hover:text-foreground transition-colors" />
                             <Separator orientation="vertical" className="h-4 bg-border/50" />
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem className="hidden md:block">
-                                        <BreadcrumbLink href="/dashboard" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Yönetim Paneli</BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator className="hidden md:block">
-                                        <ChevronRight className="size-3 text-muted-foreground/50" />
-                                    </BreadcrumbSeparator>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage className="text-xs font-bold text-primary">Genel Bakış</BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
+                            <DynamicBreadcrumb />
                         </div>
                         <div className="flex items-center gap-2">
                             <NotificationBell />

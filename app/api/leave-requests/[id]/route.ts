@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { leaveRequestSchema } from '@/lib/validations/employee';
+import { getLeaveRequestSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests/[id] - Get a single leave request
 export async function GET(
@@ -97,8 +98,9 @@ export async function PATCH(
             return NextResponse.json({ error: 'Cannot update non-pending requests' }, { status: 400 });
         }
 
+        const tValidation = await getTranslations('validation');
         const body = await request.json();
-        const validatedData = leaveRequestSchema.parse(body);
+        const validatedData = getLeaveRequestSchema(tValidation).parse(body);
 
         const updated = await prisma.leaveRequest.update({
             where: { id },

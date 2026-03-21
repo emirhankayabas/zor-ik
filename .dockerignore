@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Next.js build output
+.next
+out
+
+# Dev environment
+.env.development
+.env.local
+.env*.local
+
+# Git
+.git
+.gitignore
+
+# Misc
+*.md
+.DS_Store
+Thumbs.db
+
+# Tasks / notes
+tasks/
+
+# Test files
+*.test.ts
+*.test.tsx
+*.spec.ts

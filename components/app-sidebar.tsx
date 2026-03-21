@@ -14,6 +14,10 @@ import {
   UserCircle,
   CheckCircle2,
   CreditCard,
+  Fingerprint,
+  Clock,
+  Shield,
+  CalendarRange,
 } from "lucide-react";
 
 import {
@@ -37,6 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   session: any;
@@ -44,20 +49,21 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("sidebar");
 
   const menuGroups = [
     {
-      label: "Genel",
+      label: t("general"),
       items: [
         {
-          title: "Panel",
+          title: t("dashboard"),
           href: `/dashboard`,
           icon: LayoutDashboard,
         },
       ],
     },
     {
-      label: "Şirket Yönetimi",
+      label: t("companyManagement"),
       hide: !(
         session?.user?.role === "COMPANY_ADMIN" ||
         session?.user?.role === "SUPER_ADMIN" ||
@@ -67,64 +73,81 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       ),
       items: [
         {
-          title: "Çalışanlar",
+          title: t("employees"),
           href: `/dashboard/employees`,
           icon: Users,
         },
         {
-          title: "Departmanlar",
+          title: t("departments"),
           href: `/dashboard/departments`,
           icon: Building2,
         },
         {
-          title: "Bordrolar",
+          title: t("payroll"),
           href: `/dashboard/payroll`,
           icon: CreditCard,
+        },
+        {
+          title: t("shifts"),
+          href: `/dashboard/shifts`,
+          icon: Clock,
+        },
+        {
+          title: t("pdksRecords"),
+          href: `/dashboard/pdks`,
+          icon: Fingerprint,
         },
       ],
     },
     {
-      label: "Taleplerim",
+      label: t("myRequests"),
       items: [
         {
-          title: "İzin Taleplerim",
+          title: t("calendar"),
+          href: `/dashboard/calendar`,
+          icon: CalendarRange,
+        },
+        {
+          title: t("myLeaves"),
           href: `/dashboard/leaves`,
           icon: CalendarDays,
         },
         {
-          title: "Düzeltme Taleplerim",
+          title: t("myCorrections"),
           href: `/dashboard/attendance`,
           icon: UserCircle,
         },
       ],
     },
     {
-      label: "Onay İşlemleri",
-      hide: !(session?.user?.role === 'COMPANY_ADMIN' || session?.user?.role === 'MANAGER' || session?.user?.departmentName === "İK" || session?.user?.departmentName === "İnsan Kaynakları"),
+      label: t("approvals"),
+      hide: !(session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'COMPANY_ADMIN' || session?.user?.role === 'MANAGER' || session?.user?.departmentName === "İK" || session?.user?.departmentName === "İnsan Kaynakları"),
       items: [
         ...(session?.user?.departmentName === "İK" ||
           session?.user?.departmentName === "İnsan Kaynakları" ||
-          session?.user?.role === "COMPANY_ADMIN"
+          session?.user?.role === "COMPANY_ADMIN" ||
+          session?.user?.role === "SUPER_ADMIN"
           ? [
             {
-              title: "İK Onayları",
+              title: t("hrApprovals"),
               href: `/dashboard/hr/approvals`,
               icon: CheckCircle2,
             },
           ]
           : []),
         ...(session?.user?.role === "COMPANY_ADMIN" ||
+          session?.user?.role === "SUPER_ADMIN" ||
           session?.user?.role === "MANAGER" ||
           session?.user?.departmentName === "İK" ||
           session?.user?.departmentName === "İnsan Kaynakları"
           ? [
             {
-              title: "İzin Onayları",
+              title: t("leaveApprovals"),
               href: `/dashboard/hr/leave-requests`,
               icon: CheckCircle2,
             },
             {
-              title: "Düzeltme Onayları",
+              title: t("correctionApprovals"),
               href: `/dashboard/hr/attendance-requests`,
               icon: CheckCircle2,
             },
@@ -133,13 +156,27 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       ],
     },
     {
-      label: "Sistem",
+      label: t("system"),
       items: [
         {
-          title: "Ayarlar",
+          title: t("settings"),
           href: `/dashboard/settings`,
           icon: Settings,
         },
+        ...(session?.user?.role === "COMPANY_ADMIN" || session?.user?.role === "SUPER_ADMIN"
+          ? [
+              {
+                title: t("companySettings"),
+                href: `/dashboard/company-settings`,
+                icon: Building2,
+              },
+              {
+                title: t("permissionManagement"),
+                href: `/dashboard/permissions`,
+                icon: Shield,
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -159,7 +196,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
             <span className="font-bold text-sm truncate">Zor IK</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-tight font-medium">
-              Birim Yönetimi
+              {t("unitManagement")}
             </span>
           </div>
         </div>
@@ -225,7 +262,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-2">
                     <span className="truncate font-semibold">
-                      {session?.user?.name || "Kullanıcı"}
+                      {session?.user?.name || t("user")}
                     </span>
                     <span className="truncate text-xs text-muted-foreground">
                       {session?.user?.email}
@@ -246,7 +283,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                     className="flex items-center gap-2 cursor-pointer w-full"
                   >
                     <Settings className="size-4" />
-                    <span>Ayarlar</span>
+                    <span>{t("settings")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <SidebarSeparator />
@@ -255,7 +292,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                   onClick={() => signOut({ callbackUrl: `/login` })}
                 >
                   <LogOut className="size-4 mr-2" />
-                  Çıkış Yap
+                  {t("logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

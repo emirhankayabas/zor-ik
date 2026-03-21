@@ -1,10 +1,12 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { departmentSchema } from "@/lib/validations/employee";
+import { getDepartmentSchema } from "@/lib/validations/employee";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -40,6 +42,10 @@ export default function EditDepartmentPage({
 }) {
   const { locale, id } = use(params);
   const router = useRouter();
+  const t = useTranslations("departments");
+  const tCommon = useTranslations("common");
+  const tv = useTranslations("validation");
+  const tRoles = useTranslations("roles");
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -47,7 +53,7 @@ export default function EditDepartmentPage({
   const [managers, setManagers] = useState<any[]>([]);
 
   const form = useForm({
-    resolver: zodResolver(departmentSchema),
+    resolver: zodResolver(getDepartmentSchema(tv)),
     defaultValues: {
       name: "",
       managerId: "",
@@ -58,7 +64,7 @@ export default function EditDepartmentPage({
     const fetchData = async () => {
       try {
         // Fetch potential managers (users)
-        const usersRes = await fetch("/api/employees");
+        const usersRes = await fetch(apiUrl("/api/employees"));
         if (usersRes.ok) {
           const employees = await usersRes.json();
           // Map and filter employees by role for manager selection
@@ -73,7 +79,7 @@ export default function EditDepartmentPage({
         }
 
         // Fetch department data
-        const deptRes = await fetch(`/api/departments/${id}`);
+        const deptRes = await fetch(apiUrl(`/api/departments/${id}`));
         if (deptRes.ok) {
           const deptData = await deptRes.json();
           form.reset({
@@ -81,12 +87,12 @@ export default function EditDepartmentPage({
             managerId: deptData.managerId || "none",
           });
         } else {
-          toast.error("Departman bilgileri alınamadı");
+          toast.error(t("dataLoadError"));
           router.push(`/dashboard/departments`);
         }
       } catch (err) {
         console.error("Data fetch error:", err);
-        toast.error("Veri yüklenirken bir hata oluştu");
+        toast.error(tCommon("errorOccurred"));
       } finally {
         setIsLoading(false);
       }
@@ -103,49 +109,48 @@ export default function EditDepartmentPage({
         managerId: values.managerId === "none" ? null : values.managerId,
       };
 
-      const response = await fetch(`/api/departments/${id}`, {
+      const response = await fetch(apiUrl(`/api/departments/${id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
       });
 
       if (response.ok) {
-        toast.success("Departman başarıyla güncellendi");
+        toast.success(t("updateSuccess"));
         router.push(`/dashboard/departments`);
         router.refresh();
       } else {
         const data = await response.json();
-        toast.error(data.error || "Güncelleme sırasında bir hata oluştu");
+        toast.error(data.error || t("updateError"));
       }
     } catch (err) {
-      toast.error("Bağlantı hatası oluştu");
+      toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Bu departmanı silmek istediğinize emin misiniz?")) return;
+    if (!confirm(tCommon("confirm"))) return;
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/departments/${id}`, {
+      const response = await fetch(apiUrl(`/api/departments/${id}`), {
         method: "DELETE",
       });
 
       if (response.ok) {
-        toast.success("Departman başarıyla silindi");
+        toast.success(t("deleteSuccess"));
         router.push(`/dashboard/departments`);
         router.refresh();
       } else {
         const data = await response.json();
         toast.error(
-          data.error ||
-          "Silme işlemi başarısız oldu. Departmana bağlı çalışanlar olabilir.",
+          data.error || t("deleteError")
         );
       }
     } catch (err) {
-      toast.error("Bağlantı hatası oluştu");
+      toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);
     }
@@ -171,9 +176,9 @@ export default function EditDepartmentPage({
 
       <div className="flex items-center justify-between">
         <div>
-          <CardTitle className="text-lg font-bold">Departman Düzenle</CardTitle>
+          <CardTitle className="text-lg font-bold">{t("editTitle")}</CardTitle>
           <CardDescription>
-            Organizasyonel birim detaylarını güncelleyin.
+            {t("editSubtitle")}
           </CardDescription>
         </div>
 
@@ -187,7 +192,7 @@ export default function EditDepartmentPage({
           ) : (
             <Trash2 className="size-4" />
           )}
-          Departmanı Sil
+          {t("deleteDepartment")}
         </Button>
       </div>
 
@@ -199,10 +204,10 @@ export default function EditDepartmentPage({
             </div>
             <div>
               <CardTitle className="text-lg font-bold">
-                Birim Yapılandırması
+                {t("configTitle")}
               </CardTitle>
               <CardDescription>
-                Departman adı ve sorumlu yönetici ataması.
+                {t("configSubtitle")}
               </CardDescription>
             </div>
           </div>
@@ -216,7 +221,7 @@ export default function EditDepartmentPage({
                   name="name"
                   render={({ field }: { field: any }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel>Departman Adı</FormLabel>
+                      <FormLabel>{t("nameLabel")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -230,7 +235,7 @@ export default function EditDepartmentPage({
                   name="managerId"
                   render={({ field }: { field: any }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel>Sorumlu Yönetici</FormLabel>
+                      <FormLabel>{t("managerSelect")}</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -238,14 +243,14 @@ export default function EditDepartmentPage({
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Yönetici Seçin" />
+                            <SelectValue placeholder={t("managerSelectPlaceholder")} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="none">Atanmamış</SelectItem>
+                          <SelectItem value="none">{tCommon("unassigned")}</SelectItem>
                           {managers.map((manager) => (
                             <SelectItem key={manager.id} value={manager.id}>
-                              {manager.name} ({manager.role === 'COMPANY_ADMIN' ? 'İK Yöneticisi' : 'Birim Yöneticisi'})
+                              {manager.name} ({manager.role === 'COMPANY_ADMIN' ? tRoles("hrManager") : tRoles("unitManager")})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -263,7 +268,7 @@ export default function EditDepartmentPage({
                   ) : (
                     <Save className="size-4" />
                   )}
-                  Değişiklikleri Kaydet
+                  {tCommon("saveChanges")}
                 </Button>
               </div>
             </form>

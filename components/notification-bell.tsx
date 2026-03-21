@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import {
   Bell,
@@ -42,7 +43,7 @@ export function NotificationBell() {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch("/api/notifications");
+      const response = await fetch(apiUrl("/api/notifications"));
       if (response.ok) {
         const data = await response.json();
         setNotifications(data);
@@ -61,7 +62,7 @@ export function NotificationBell() {
 
   const markAsRead = async (id: string) => {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(apiUrl(`/api/notifications/${id}`), {
         method: "PATCH",
       });
       if (response.ok) {
@@ -91,7 +92,7 @@ export function NotificationBell() {
       // But typically we should have a bulk endpoint.
       // Let's just do it locally for now and mark them on next fetch
       for (const n of notifications.filter((n) => !n.isRead)) {
-        await fetch(`/api/notifications/${n.id}`, { method: "PATCH" });
+        await fetch(apiUrl(`/api/notifications/${n.id}`), { method: "PATCH" });
       }
       await fetchNotifications();
     } finally {

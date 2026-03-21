@@ -1,9 +1,11 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import * as z from "zod";
 import {
   User,
@@ -42,41 +44,54 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import ErrorMessage from "@/components/error-message";
+import { toLocalDateString } from "@/lib/status-helpers";
+import { getEmployeeSchema } from "@/lib/validations/employee";
 
-const employeeSchema = z.object({
-  name: z.string().min(2, "İsim en az 2 karakter olmalıdır"),
-  email: z.string().email("Geçerli bir e-posta adresi giriniz"),
-  password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
-  role: z.enum(["COMPANY_ADMIN", "EMPLOYEE", "MANAGER"]),
-  departmentId: z.string().optional(),
-  position: z.string().min(2, "Pozisyon en az 2 karakter olmalıdır"),
-  hireDate: z.string().min(1, "İşe giriş tarihi zorunludur"),
-  workingDays: z.array(z.number()),
-});
+const createEmployeeSchema = (tV: (key: string) => string) =>
+  z.object({
+    name: z.string().min(2, tV("nameMin2")),
+    email: z.string().email(tV("validEmail")),
+    password: z.string().min(6, tV("passwordMin")),
+    role: z.enum(["COMPANY_ADMIN", "EMPLOYEE", "MANAGER"]),
+    departmentId: z.string().optional(),
+    position: z.string().min(2, tV("positionMin")),
+    hireDate: z.string().min(1, tV("hireDateRequired")),
+    workingDays: z.array(z.number()),
+  });
 
-type EmployeeFormValues = z.infer<typeof employeeSchema>;
+type EmployeeFormValues = z.infer<ReturnType<typeof getEmployeeSchema>>;
 
 export default function NewEmployeePage() {
   const router = useRouter();
-    
+  const t = useTranslations("employees");
+  const tCommon = useTranslations("common");
+  const tWeekdays = useTranslations("weekdays");
+  const tValidation = useTranslations("validation");
+  const tRoles = useTranslations("roles");
+
   const [isLoading, setIsLoading] = useState(false);
   const [departments, setDepartments] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [emailDomain, setEmailDomain] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDepartments = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/departments");
-        if (response.ok) {
-          const data = await response.json();
-          setDepartments(data);
+        const [deptRes, settingsRes] = await Promise.all([
+          fetch(apiUrl("/api/departments")),
+          fetch(apiUrl("/api/company-settings")),
+        ]);
+        if (deptRes.ok) setDepartments(await deptRes.json());
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json();
+          if (settings?.emailDomain) setEmailDomain(settings.emailDomain);
         }
       } catch (err) {
-        console.error("Failed to fetch departments:", err);
+        console.error("Failed to fetch data:", err);
       }
     };
-    fetchDepartments();
+    fetchData();
   }, []);
 
   const {
@@ -86,15 +101,15 @@ export default function NewEmployeePage() {
     watch,
     formState: { errors },
   } = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(getEmployeeSchema(tValidation)),
     defaultValues: {
       role: "EMPLOYEE",
       workingDays: [1, 2, 3, 4, 5],
-      hireDate: new Date().toISOString().split('T')[0],
+      hireDate: toLocalDateString(new Date()),
     },
   });
 
-  const selectedWorkingDays = watch("workingDays");
+  const selectedWorkingDays = watch("workingDays") || [];
 
   const toggleWorkingDay = (day: number) => {
     const current = [...selectedWorkingDays];
@@ -110,7 +125,7 @@ export default function NewEmployeePage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/employees", {
+      const response = await fetch(apiUrl("/api/employees"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -118,7 +133,7 @@ export default function NewEmployeePage() {
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || "Çalışan eklenirken bir hata oluştu");
+        throw new Error(result.error || t("addError"));
       }
 
       setSuccess(true);
@@ -142,10 +157,10 @@ export default function NewEmployeePage() {
               <CheckCircle2 className="size-8" />
             </div>
             <h2 className="text-2xl font-black tracking-tight">
-              Kayıt Başarılı!
+              {t("registrationSuccess")}
             </h2>
             <p className="text-muted-foreground font-medium text-sm">
-              Yeni çalışan sisteme başarıyla eklendi, yönlendiriliyorsunuz...
+              {t("registrationSuccessDesc")}
             </p>
           </CardContent>
         </Card>
@@ -165,21 +180,21 @@ export default function NewEmployeePage() {
 
       <div className="space-y-1">
         <CardTitle className="text-xl mb-0.5 font-medium">
-          Yeni Çalışan Ekle
+          {t("newTitle")}
         </CardTitle>
         <CardDescription>
-          Şirket bünyesine yeni bir ekip üyesi dahil edin.
+          {t("newSubtitle")}
         </CardDescription>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Kişisel Bilgiler</CardTitle>
+            <CardTitle>{t("personalInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pb-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Ad Soyad *</Label>
+              <Label htmlFor="name">{t("fullName")} *</Label>
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                   <User size="16" className="text-muted-foreground" />
@@ -198,28 +213,41 @@ export default function NewEmployeePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-posta Adresi *</Label>
+              <Label htmlFor="email">{t("email")} *</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
                   <Mail size="16" className="text-muted-foreground" />
                 </span>
                 <Input
-                  {...register("email")}
+                  {...register("email", {
+                    onBlur: (e) => {
+                      // Auto-append email domain if the user typed just the username part
+                      if (emailDomain && e.target.value && !e.target.value.includes("@")) {
+                        const fullEmail = e.target.value + emailDomain;
+                        e.target.value = fullEmail;
+                        setValue("email", fullEmail, { shouldValidate: true });
+                      }
+                    },
+                  })}
                   id="email"
                   type="email"
-                  placeholder="ahmet.yilmaz@sertay.com"
+                  placeholder={emailDomain ? `ad.soyad${emailDomain}` : "ahmet.yilmaz@sirket.com"}
                   className="pl-8"
                 />
               </div>
-
+              {emailDomain && (
+                <p className="text-[10px] text-muted-foreground">
+                  {t("emailDomainHint", { domain: emailDomain })}
+                </p>
+              )}
               {errors.email && (
                 <ErrorMessage>{errors.email.message}</ErrorMessage>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Şifre *</Label>
+              <Label htmlFor="password">{t("password")} *</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -244,11 +272,11 @@ export default function NewEmployeePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Görev ve Yetkilendirme</CardTitle>
+            <CardTitle>{t("taskAndAuth")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pb-4">
             <div className="space-y-2">
-              <Label htmlFor="departmentId">Departman</Label>
+              <Label htmlFor="departmentId">{t("department")}</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -257,7 +285,7 @@ export default function NewEmployeePage() {
 
                 <Select onValueChange={(val) => setValue("departmentId", val)}>
                   <SelectTrigger className="pl-8">
-                    <SelectValue placeholder="Departman seçiniz" />
+                    <SelectValue placeholder={t("selectDepartment")} />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map((dept) => (
@@ -274,7 +302,7 @@ export default function NewEmployeePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="position">Pozisyon / Ünvan *</Label>
+              <Label htmlFor="position">{t("positionTitle")} *</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -294,7 +322,7 @@ export default function NewEmployeePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role"> Sistem Rolü *</Label>
+              <Label htmlFor="role"> {t("systemRole")} *</Label>
 
               <div className="relative">
                 <span className="w-9 h-9 flex items-center justify-center absolute left-0 top-0">
@@ -306,13 +334,13 @@ export default function NewEmployeePage() {
                   onValueChange={(val: any) => setValue("role", val)}
                 >
                   <SelectTrigger className="pl-8">
-                    <SelectValue placeholder="Rol seçiniz" />
+                    <SelectValue placeholder={t("selectRole")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="EMPLOYEE">Standart Çalışan</SelectItem>
-                    <SelectItem value="MANAGER">Yönetici</SelectItem>
+                    <SelectItem value="EMPLOYEE">{tRoles("employee")}</SelectItem>
+                    <SelectItem value="MANAGER">{tRoles("manager")}</SelectItem>
                     <SelectItem value="COMPANY_ADMIN">
-                      Şirket Yöneticisi
+                      {tRoles("admin")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -324,12 +352,12 @@ export default function NewEmployeePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hireDate">İşe Giriş Tarihi *</Label>
+              <Label htmlFor="hireDate">{t("hireDate")} *</Label>
               <div className="relative">
                 <DatePicker
-                  date={watch("hireDate") ? new Date(watch("hireDate")) : undefined}
-                  setDate={(date) => setValue("hireDate", date ? date.toISOString().split("T")[0] : "")}
-                  placeholder="İşe giriş tarihi"
+                  date={watch("hireDate") ? new Date(watch("hireDate") as string) : undefined}
+                  setDate={(date) => setValue("hireDate", date ? toLocalDateString(date) : "")}
+                  placeholder={t("hireDate")}
                 />
               </div>
               {errors.hireDate && (
@@ -338,16 +366,16 @@ export default function NewEmployeePage() {
             </div>
 
             <div className="md:col-span-2 space-y-3">
-              <Label>Çalışma Günleri</Label>
+              <Label>{t("workingDays")}</Label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { id: 1, label: "Pzt" },
-                  { id: 2, label: "Sal" },
-                  { id: 3, label: "Çar" },
-                  { id: 4, label: "Per" },
-                  { id: 5, label: "Cum" },
-                  { id: 6, label: "Cmt" },
-                  { id: 0, label: "Paz" },
+                  { id: 1, label: tWeekdays("mon") },
+                  { id: 2, label: tWeekdays("tue") },
+                  { id: 3, label: tWeekdays("wed") },
+                  { id: 4, label: tWeekdays("thu") },
+                  { id: 5, label: tWeekdays("fri") },
+                  { id: 6, label: tWeekdays("sat") },
+                  { id: 0, label: tWeekdays("sun") },
                 ].map((day) => (
                   <Button
                     key={day.id}
@@ -362,7 +390,7 @@ export default function NewEmployeePage() {
                 ))}
               </div>
               <p className="text-[10px] text-muted-foreground italic">
-                * İzin hesaplamaları bu günler üzerinden yapılacaktır.
+                {t("workingDaysNote")}
               </p>
             </div>
           </CardContent>
@@ -370,7 +398,7 @@ export default function NewEmployeePage() {
 
         {error && (
           <Alert variant="destructive">
-            <AlertTitle>Hata Oluştu</AlertTitle>
+            <AlertTitle>{tCommon("errorOccurred")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
@@ -382,18 +410,18 @@ export default function NewEmployeePage() {
             size="sm"
             onClick={() => router.back()}
           >
-            Vazgeç
+            {tCommon("cancel")}
           </Button>
           <Button type="submit" size="sm" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                Kaydediliyor...
+                {tCommon("saving")}
               </>
             ) : (
               <>
                 <Plus />
-                Çalışanı Kaydet
+                {t("saveEmployee")}
               </>
             )}
           </Button>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { applyCorrection } from '@/lib/pdks-engine';
 
 // POST /api/attendance-corrections/[id]/approve - Approve correction request
 export async function POST(
@@ -84,6 +85,14 @@ export async function POST(
                     where: { id },
                     data: { status: 'APPROVED' },
                 });
+
+                // Apply correction to PDKS attendance log
+                try {
+                    await applyCorrection(id);
+                } catch (pdksError) {
+                    console.error('PDKS correction apply failed:', pdksError);
+                    // Non-blocking: approval succeeds even if PDKS update fails
+                }
 
                 // Final Approval Notification
                 await prisma.notification.create({

@@ -1,4 +1,4 @@
-﻿import { getServerAuthSession } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { Users, ArrowLeft, Building2 } from "lucide-react";
 import {
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import MemberManager from "./Component/MemberManager";
+import { getTranslations } from "next-intl/server";
 
 export default async function ManageMembersPage({
   params,
@@ -19,6 +20,7 @@ export default async function ManageMembersPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
+  const t = await getTranslations("departments");
   const session = await getServerAuthSession();
 
   if (!session) {
@@ -79,9 +81,9 @@ export default async function ManageMembersPage({
       </div>
 
       <div className="space-y-1">
-        <CardTitle className="text-base font-bold">Üyeleri Yönet</CardTitle>
+        <CardTitle className="text-base font-bold">{t("manageMembers")}</CardTitle>
         <CardDescription>
-          {department.name} departmanına çalışan ekleyin veya çıkarın.
+          {t("addRemoveDesc", { name: department.name })}
         </CardDescription>
       </div>
 
@@ -92,9 +94,9 @@ export default async function ManageMembersPage({
               <Building2 className="size-6" />
             </div>
             <div>
-              <CardTitle>Organizasyon Birimi</CardTitle>
+              <CardTitle>{t("orgUnit")}</CardTitle>
               <CardDescription>
-                Departman üye listesini güncelleyin.
+                {t("updateOrgUnit")}
               </CardDescription>
             </div>
           </div>

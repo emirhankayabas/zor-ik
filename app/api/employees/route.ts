@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
-import { employeeSchema } from '@/lib/validations/employee';
+import { getEmployeeSchema } from '@/lib/validations/employee';
+import { getTranslations } from 'next-intl/server';
 import { calculateSeniorityQuota } from '@/lib/leave-engine';
 
 export async function GET(request: NextRequest) {
@@ -37,8 +38,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(employees);
     } catch (error: any) {
         console.error('Get employees error:', error);
+        const tEmployees = await getTranslations('employees');
         return NextResponse.json(
-            { error: 'Çalışanlar alınırken bir hata oluştu' },
+            { error: tEmployees('fetchError') || 'Çalışanlar alınırken bir hata oluştu' },
             { status: 500 }
         );
     }
@@ -47,10 +49,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const companyId = await getCompanyId();
+        const tValidation = await getTranslations('validation');
+        const tEmployees = await getTranslations('employees');
         const body = await request.json();
 
         // Validate input
-        const validatedData = employeeSchema.parse(body);
+        const validatedData = getEmployeeSchema(tValidation).parse(body);
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
 
         if (existingUser) {
             return NextResponse.json(
-                { error: 'Bu e-posta adresi zaten kullanılıyor' },
+                { error: tEmployees('emailInUse') || 'Bu e-posta adresi zaten kullanılıyor' },
                 { status: 400 }
             );
         }
@@ -122,15 +126,16 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         console.error('Create employee error:', error);
 
+        const tEmployeesCatch = await getTranslations('employees');
         if (error.name === 'ZodError') {
             return NextResponse.json(
-                { error: 'Geçersiz form verileri' },
+                { error: tEmployeesCatch('invalidData') || 'Geçersiz form verileri' },
                 { status: 400 }
             );
         }
 
         return NextResponse.json(
-            { error: 'Çalışan eklenirken bir hata oluştu' },
+            { error: tEmployeesCatch('createError') || 'Çalışan eklenirken bir hata oluştu' },
             { status: 500 }
         );
     }

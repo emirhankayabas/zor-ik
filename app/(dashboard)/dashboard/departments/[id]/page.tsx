@@ -1,4 +1,4 @@
-﻿import { getServerAuthSession } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   Building2,
@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 export default async function DepartmentDetailPage({
   params,
@@ -28,6 +29,8 @@ export default async function DepartmentDetailPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
+  const t = await getTranslations("departments");
+  const tc = await getTranslations("common");
   const session = await getServerAuthSession();
 
   if (!session) {
@@ -87,14 +90,14 @@ export default async function DepartmentDetailPage({
             <Link
               href={`/dashboard/departments/${department.id}/edit`}
             >
-              Ayarları Düzenle
+              {t("editSettings")}
             </Link>
           </Button>
           <Button size="sm" asChild>
             <Link
               href={`/dashboard/departments/${department.id}/members`}
             >
-              Üyeleri Yönet
+              {t("manageMembers")}
             </Link>
           </Button>
         </div>
@@ -110,7 +113,7 @@ export default async function DepartmentDetailPage({
                 </div>
                 <div>
                   <CardTitle>{department.name}</CardTitle>
-                  <CardDescription>Departman Özeti</CardDescription>
+                  <CardDescription>{t("summary")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -118,16 +121,16 @@ export default async function DepartmentDetailPage({
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-2 border-b border-dashed">
                   <span className="text-xs font-medium text-muted-foreground">
-                    Toplam Üye
+                    {t("totalMembers")}
                   </span>
                   <Badge className="bg-muted text-foreground hover:bg-muted font-black text-[10px]">
-                    {department._count.employees} Kişi
+                    {department._count.employees} {tc("person")}
                   </Badge>
                 </div>
 
                 <div className="space-y-2 pt-2 pb-4">
                   <CardDescription className="text-white">
-                    Departman Yöneticisi
+                    {t("departmentManager")}
                   </CardDescription>
                   {department.manager ? (
                     <div className="flex items-center gap-2">
@@ -148,7 +151,7 @@ export default async function DepartmentDetailPage({
                   ) : (
                     <div className="flex items-center gap-x-2">
                       <UserIcon className="size-4 text-muted-foreground" />
-                      <CardDescription>Yönetici Atanmamış</CardDescription>
+                      <CardDescription>{t("managerNotAssigned")}</CardDescription>
                     </div>
                   )}
                 </div>
@@ -165,9 +168,9 @@ export default async function DepartmentDetailPage({
                   <Users className="size-5" />
                 </div>
                 <div>
-                  <CardTitle>Departman Üyeleri</CardTitle>
+                  <CardTitle>{t("membersTitle")}</CardTitle>
                   <CardDescription>
-                    Bu departmanda görev yapan personel listesi.
+                    {t("membersSubtitle")}
                   </CardDescription>
                 </div>
               </div>
@@ -176,7 +179,7 @@ export default async function DepartmentDetailPage({
               {department.employees.length === 0 ? (
                 <div className="p-20 text-center">
                   <p className="text-muted-foreground text-sm font-medium">
-                    Bu departmanda henüz kayıtlı çalışan bulunmuyor.
+                    {t("noMembersInDept")}
                   </p>
                 </div>
               ) : (
@@ -197,14 +200,14 @@ export default async function DepartmentDetailPage({
                             {employee.user.name}
                             {employee.user.id === department.managerId && (
                               <Badge className="ml-2 bg-primary/10 text-primary hover:bg-primary/20 border-none font-black text-[8px] uppercase tracking-tighter align-middle">
-                                Yönetici
+                                {t("departmentManager")}
                               </Badge>
                             )}
                           </p>
                           <div className="flex items-center gap-2 mt-1 opacity-60 text-xs">
                             <div className="flex items-center gap-1.5">
                               <Briefcase size={12} />
-                              {employee.position || "Pozisyon Belirtilmemiş"}
+                              {employee.position || tc("notSpecified")}
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Mail size={12} />

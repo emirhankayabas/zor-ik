@@ -1,0 +1,79 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerAuthSession } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { getShiftSchema } from "@/lib/validations/employee";
+import { getTranslations } from "next-intl/server";
+
+const ALLOWED_ROLES = ["SUPER_ADMIN", "COMPANY_ADMIN", "MANAGER"];
+const ALLOWED_DEPTS = ["İK", "İnsan Kaynakları"];
+
+function canManageShifts(session: any) {
+  if (!session) return false;
+  if (ALLOWED_ROLES.includes(session.user.role)) return true;
+  if (ALLOWED_DEPTS.includes(session.user.departmentName)) return true;
+  return false;
+}
+
+
+// GET /api/shifts - List all shifts for company
+export async function GET() {
+  try {
+    const session = await getServerAuthSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const shifts = await prisma.shift.findMany({
+      where: { companyId: session.user.companyId },
+      include: {
+        _count: { select: { employees: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return NextResponse.json(shifts);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST /api/shifts - Create a new shift
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerAuthSession();
+    if (!session || !canManageShifts(session)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const tValidation = await getTranslations("validation");
+    const tShifts = await getTranslations("shifts");
+    const body = await request.json();
+    const data = getShiftSchema(tValidation).parse(body);
+
+    // If this shift is default, unset previous default
+    if (data.isDefault) {
+      await prisma.shift.updateMany({
+        where: { companyId: session.user.companyId, isDefault: true },
+        data: { isDefault: false },
+      });
+    }
+
+    const shift = await prisma.shift.create({
+      data: {
+        ...data,
+        companyId: session.user.companyId,
+      },
+    });
+
+    return NextResponse.json(shift, { status: 201 });
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      const tShifts = await getTranslations("shifts");
+      return NextResponse.json(
+        { error: tShifts("alreadyExists") || "Bu isimde bir vardiya zaten mevcut" },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

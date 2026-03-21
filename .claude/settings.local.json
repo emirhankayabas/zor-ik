@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -d */)",
+      "Bash(npx next:*)",
+      "Bash(npx prisma:*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(git status:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsx -e \":*)",
+      "Bash(node -e \":*)",
+      "Bash(find \"C:\\\\Users\\\\emirh\\\\OneDrive\\\\Belgeler\\\\DEV_LOCALE\\\\ik\\\\app\\\\\\(dashboard\\)\\\\dashboard\" -maxdepth 1 -type d)",
+      "Bash(find C:UsersemirhOneDriveBelgelerDEV_LOCALEik -maxdepth 1 -name tailwind* -o -name globals.css)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:123@localhost:5432/ik_db?schema=public\" DIRECT_URL=\"postgresql://postgres:123@localhost:5432/ik_db?schema=public\" npx prisma db push 2>&1)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:123@localhost:5432/ik_db?schema=public\" DIRECT_URL=\"postgresql://postgres:123@localhost:5432/ik_db?schema=public\" npx prisma generate 2>&1)",
+      "Bash(grep -rn 'fetch\\(`/api/' /c/Users/emirh/OneDrive/Belgeler/DEV_LOCALE/ik/app/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rn 'fetch\\(\"\"\"\"/api/\\\\|fetch\\(`/api/' /c/Users/emirh/OneDrive/Belgeler/DEV_LOCALE/ik/app/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep:*)",
+      "Bash(grep -v \"apiUrl\\(\\\\`\")",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(''''/dev/stdin'''',''''utf8''''\\);const p=JSON.parse\\(d\\);console.log\\(''''node engines:'''',p.engines\\);console.log\\(''''scripts:'''',JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(git check-ignore:*)",
+      "Bash(head -3 \"app/\\(dashboard\\)/dashboard/attendance/page.tsx\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

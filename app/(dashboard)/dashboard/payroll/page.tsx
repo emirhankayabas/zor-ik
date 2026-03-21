@@ -1,4 +1,5 @@
 "use client";
+import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -56,9 +57,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function PayrollPage() {
-    const router = useRouter();
+  const t = useTranslations("payroll");
+  const tCommon = useTranslations("common");
+  const router = useRouter();
   
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -78,18 +82,18 @@ export default function PayrollPage() {
   });
 
   const months = [
-    { id: 1, name: "Ocak" },
-    { id: 2, name: "Şubat" },
-    { id: 3, name: "Mart" },
-    { id: 4, name: "Nisan" },
-    { id: 5, name: "Mayıs" },
-    { id: 6, name: "Haziran" },
-    { id: 7, name: "Temmuz" },
-    { id: 8, name: "Ağustos" },
-    { id: 9, name: "Eylül" },
-    { id: 10, name: "Ekim" },
-    { id: 11, name: "Kasım" },
-    { id: 12, name: "Aralık" },
+    { id: 1, name: t("months.1") },
+    { id: 2, name: t("months.2") },
+    { id: 3, name: t("months.3") },
+    { id: 4, name: t("months.4") },
+    { id: 5, name: t("months.5") },
+    { id: 6, name: t("months.6") },
+    { id: 7, name: t("months.7") },
+    { id: 8, name: t("months.8") },
+    { id: 9, name: t("months.9") },
+    { id: 10, name: t("months.10") },
+    { id: 11, name: t("months.11") },
+    { id: 12, name: t("months.12") },
   ];
 
   const years = [2024, 2025, 2026];
@@ -97,8 +101,8 @@ export default function PayrollPage() {
   const fetchPayrolls = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/payroll?month=${month}&year=${year}`);
-      if (!res.ok) throw new Error("Veriler alınamadı");
+      const res = await fetch(apiUrl(`/api/payroll?month=${month}&year=${year}`));
+      if (!res.ok) throw new Error(t("dataLoadError") || tCommon("errorOccurred"));
       const data = await res.json();
       setPayrollData(data.payrolls);
       setStats(data.stats);
@@ -111,8 +115,8 @@ export default function PayrollPage() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await fetch(`/api/employees/salaries`);
-      if (!res.ok) throw new Error("Çalışan bilgileri alınamadı");
+      const res = await fetch(apiUrl(`/api/employees/salaries`));
+      if (!res.ok) throw new Error(tCommon("fetchError"));
       const data = await res.json();
       setEmployees(data);
     } catch (error: any) {
@@ -152,7 +156,7 @@ export default function PayrollPage() {
 
     setIsUpdatingSalary(true);
     try {
-      const res = await fetch(`/api/employees/${selectedEmployee.id}/salary`, {
+      const res = await fetch(apiUrl(`/api/employees/${selectedEmployee.id}/salary`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,9 +165,9 @@ export default function PayrollPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Maaş güncellenirken hata oluştu");
-
-      toast.success("Maaş güncellendi");
+      if (!res.ok) throw new Error(t("updateError"));
+ 
+      toast.success(t("updatedSuccess") || tCommon("updatedSuccess"));
       setSelectedEmployee(null);
       fetchEmployees();
       fetchPayrolls();
@@ -177,13 +181,13 @@ export default function PayrollPage() {
   const generatePayroll = async () => {
     setIsGenerating(true);
     try {
-      const res = await fetch("/api/payroll/generate", {
+      const res = await fetch(apiUrl("/api/payroll/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ month, year }),
       });
-
-      if (!res.ok) throw new Error("Bordro oluşturulurken hata oluştu");
+ 
+      if (!res.ok) throw new Error(t("generateError") || tCommon("errorOccurred"));
 
       const data = await res.json();
       toast.success(data.message);
@@ -200,11 +204,10 @@ export default function PayrollPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <CardTitle className="text-xl mb-0.5 font-medium">
-            Bordro Yönetimi
+            {t("title")}
           </CardTitle>
           <CardDescription>
-            Gelir vergisi, SGK ve damga vergisi dahil profesyonel bordro
-            hesaplama.
+            {t("subtitle")}
           </CardDescription>
         </div>
 
@@ -214,7 +217,7 @@ export default function PayrollPage() {
             onValueChange={(v) => setMonth(parseInt(v))}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Ay Seçin" />
+              <SelectValue placeholder={tCommon("selectMonth")} />
             </SelectTrigger>
             <SelectContent>
               {months.map((m) => (
@@ -230,7 +233,7 @@ export default function PayrollPage() {
             onValueChange={(v) => setYear(parseInt(v))}
           >
             <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Yıl" />
+              <SelectValue placeholder={tCommon("year")} />
             </SelectTrigger>
             <SelectContent>
               {years.map((y) => (
@@ -247,7 +250,7 @@ export default function PayrollPage() {
             ) : (
               <Calculator className="mr-2 size-4" />
             )}
-            Bordroları Oluştur
+            {t("generatePayrolls")}
           </Button>
         </div>
       </div>
@@ -256,7 +259,7 @@ export default function PayrollPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-muted-foreground text-sm">
-              Toplam Brüt
+              {t("totalGross")}
             </CardTitle>
             <TrendingUp className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -269,7 +272,7 @@ export default function PayrollPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-muted-foreground text-sm">
-              Toplam Net Ödeme
+              {t("totalNet")}
             </CardTitle>
             <DollarSign className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -282,7 +285,7 @@ export default function PayrollPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-muted-foreground text-sm">
-              SGK & İşsizlik
+              {t("sgkUnemploymentShort")}
             </CardTitle>
             <Users className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -295,7 +298,7 @@ export default function PayrollPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-muted-foreground text-sm">
-              Gelir & Damga Vergisi
+              {t("taxEstimate")}
             </CardTitle>
             <CreditCard className="size-4 text-muted-foreground" />
           </CardHeader>
@@ -310,20 +313,22 @@ export default function PayrollPage() {
       <Tabs defaultValue="payrolls" className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="payrolls">
-            <Calculator className="size-4 mr-2" /> Hesaplanan Bordrolar
+            <Calculator className="size-4 mr-2" /> {t("calculatedPayrolls")}
           </TabsTrigger>
           <TabsTrigger value="salaries">
-            <Wallet className="size-4 mr-2" /> Maaş Tanımlama
+            <Wallet className="size-4 mr-2" /> {t("salaryDefinitions")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="payrolls">
           <Card>
             <CardHeader className="px-3 gap-0.5!">
-              <CardTitle>Hesaplanan Bordro Listesi</CardTitle>
+              <CardTitle>{t("calculatedPayrollList")}</CardTitle>
               <CardDescription>
-                {months.find((m) => m.id === month)?.name} {year} dönemi için
-                kayıtlar.
+                {t("periodDesc", {
+                  month: months.find((m) => m.id === month)?.name || "",
+                  year,
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 mt-3 overflow-hidden">
@@ -332,34 +337,34 @@ export default function PayrollPage() {
                   {/* First Header Row */}
                   <TableRow>
                     <TableHead rowSpan={3} className="border font-bold">
-                      Çalışan
+                      {tCommon("person")}
                     </TableHead>
                     <TableHead
                       rowSpan={3}
                       className="border text-center font-bold"
                     >
-                      Net Ücret ₺
+                      {t("netSalaryLabel")} ₺
                     </TableHead>
                     <TableHead className="border text-center text-[10px] py-1 h-auto text-green-700 font-medium">
-                      İlave ₺
+                      {t("additional")} ₺
                     </TableHead>
                     <TableHead
                       rowSpan={3}
                       className="border text-center font-bold"
                     >
-                      Maaş ₺
+                      {t("salary")} ₺
                     </TableHead>
                     <TableHead
                       colSpan={5}
                       className="border text-center text-red-600 font-bold py-1 h-auto"
                     >
-                      Yasal Kesintiler ₺
+                      {t("legalDeductions")} ₺
                     </TableHead>
                     <TableHead
                       rowSpan={3}
                       className="border text-center font-bold"
                     >
-                      Brüt Ücret ₺
+                      {t("grossSalaryLabel")} ₺
                     </TableHead>
                   </TableRow>
                   {/* Second Header Row */}
@@ -368,43 +373,43 @@ export default function PayrollPage() {
                       rowSpan={2}
                       className="border text-center text-green-700 font-bold leading-tight"
                     >
-                      Asgari Geçim İndirimi
+                      {t("agi")}
                       <div className="text-[8px] font-normal text-muted-foreground">
-                        (Eş ve Çocuk durumu)
+                        {t("agiSubtitle")}
                       </div>
                     </TableHead>
                     <TableHead
                       colSpan={2}
                       className="border text-center text-orange-600 font-bold py-1 h-auto"
                     >
-                      SGK + İşsizlik
+                      {t("sgkUnemploymentShort")}
                     </TableHead>
                     <TableHead
                       rowSpan={2}
                       className="border text-center text-red-600 font-bold py-1 h-auto leading-tight"
                     >
-                      Damga Vergisi
+                      {t("stampTax")}
                     </TableHead>
                     <TableHead
                       colSpan={2}
                       className="border text-center text-red-600 font-bold py-1 h-auto"
                     >
-                      Vergi
+                      {t("tax")}
                     </TableHead>
                   </TableRow>
                   {/* Third Header Row */}
                   <TableRow>
                     <TableHead className="border text-center text-orange-600 font-bold text-[11px] px-2">
-                      Çalışan SGK Primi
+                      {t("sgkPremium")}
                     </TableHead>
                     <TableHead className="border text-center text-orange-600 font-bold text-[11px] px-2">
-                      Çalışan İşsizlik Sigortası
+                      {t("unemploymentInsurance")}
                     </TableHead>
                     <TableHead className="border text-center text-red-600 font-medium text-[11px]">
-                      Dilim
+                      {t("taxBracket")}
                     </TableHead>
                     <TableHead className="border text-center text-red-600 font-medium text-[11px]">
-                      Gelir Vergisi
+                      {t("incomeTax")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -421,7 +426,7 @@ export default function PayrollPage() {
                         colSpan={10}
                         className="text-center py-8 text-muted-foreground"
                       >
-                        Seçili dönem için henüz bordro oluşturulmamış.
+                        {t("noPayrollGenerated")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -430,7 +435,7 @@ export default function PayrollPage() {
                         <TableCell className="border px-4 py-2">
                           <div className="flex flex-col">
                             <span className="font-bold text-sm whitespace-nowrap">
-                              {p.employee?.user?.name || "İsimsiz Çalışan"}
+                              {p.employee?.user?.name || t("unnamed")}
                             </span>
                             <span className="text-[10px] text-muted-foreground truncate max-w-37.5">
                               {p.employee?.user?.email}
@@ -449,8 +454,7 @@ export default function PayrollPage() {
                             })
                           ) : (
                             <div className="text-[7px] scale-90">
-                              Asgari Geçim İndirimi 2022 itibarıyla
-                              kaldırılmıştır.
+                              {t("agiRemoved")}
                             </div>
                           )}
                         </TableCell>
@@ -501,21 +505,20 @@ export default function PayrollPage() {
         <TabsContent value="salaries">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Çalışan Maaş Tanımları</CardTitle>
+              <CardTitle className="text-lg">{t("salaryDefinitions")}</CardTitle>
               <CardDescription>
-                Bordro hesaplanabilmesi için çalışanların brüt maaşlarının
-                tanımlı olması gerekir.
+                {t("salaryDefinitionsDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Çalışan</TableHead>
-                    <TableHead>Departman</TableHead>
-                    <TableHead>Pozisyon</TableHead>
-                    <TableHead>Tanımlı Brüt Maaş</TableHead>
-                    <TableHead className="text-right">İşlem</TableHead>
+                    <TableHead>{tCommon("person")}</TableHead>
+                    <TableHead>{tCommon("department")}</TableHead>
+                    <TableHead>{tCommon("position")}</TableHead>
+                    <TableHead>{t("definedGross")}</TableHead>
+                    <TableHead className="text-right">{t("action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -541,7 +544,7 @@ export default function PayrollPage() {
                             ₺{emp.salary.baseSalary.toLocaleString("tr-TR")}
                           </span>
                         ) : (
-                          <Badge variant="outline">Tanımsız</Badge>
+                          <Badge variant="outline">{tCommon("undefined")}</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -560,7 +563,7 @@ export default function PayrollPage() {
                             }
                           }}
                         >
-                          {emp.salary ? "Güncelle" : "Maaş Tanımla"}
+                          {emp.salary ? tCommon("update") : t("defineSalary")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -578,16 +581,15 @@ export default function PayrollPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Maaş Tanımla / Güncelle</DialogTitle>
+            <DialogTitle>{t("dialogTitle")}</DialogTitle>
             <DialogDescription>
-              {selectedEmployee?.user.name} isimli çalışan için brüt aylık maaş
-              belirleyin.
+              {t("dialogDesc", { name: selectedEmployee?.user.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="salary" className="text-right">
-                Brüt Maaş
+                {t("grossSalaryLabel")}
               </Label>
               <Input
                 id="salary"
@@ -604,7 +606,7 @@ export default function PayrollPage() {
                 htmlFor="netSalary"
                 className="text-right font-bold text-primary"
               >
-                Net Maaş
+                {t("netSalaryLabel")}
               </Label>
               <Input
                 id="netSalary"
@@ -618,7 +620,7 @@ export default function PayrollPage() {
             <div className="flex flex-col gap-2 rounded-xl">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">
-                  SGK + İşsizlik (%15)
+                  {t("sgkPercent")}
                 </span>
                 <span>
                   ₺
@@ -630,7 +632,7 @@ export default function PayrollPage() {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">
-                  Gelir + Damga V. (Tahmini)
+                  {t("taxEstimate")}
                 </span>
                 <span>
                   ₺
@@ -644,7 +646,7 @@ export default function PayrollPage() {
               </div>
               <div className="h-px my-1" />
               <div className="flex justify-between items-center">
-                <span>Net Ele Geçen</span>
+                <span>{t("netTakeHome")}</span>
                 <span>
                   ₺
                   {(parseFloat(tempNetSalary) || 0).toLocaleString("tr-TR", {
@@ -656,21 +658,19 @@ export default function PayrollPage() {
 
             <div className="flex items-start gap-2 text-[11px] text-muted-foreground">
               <p>
-                2026 yasal parametrelerine göre hesaplanmıştır. Gelir vergisi
-                dilimleri (%15, %20...) kümülatif matraha göre değişiklik
-                gösterebilir.
+                {t("legalNote")}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelectedEmployee(null)}>
-              Vazgeç
+              {tCommon("cancel")}
             </Button>
             <Button onClick={updateSalary} disabled={isUpdatingSalary}>
               {isUpdatingSalary && (
                 <Loader2 className="mr-2 size-4 animate-spin" />
               )}
-              Kaydet
+              {tCommon("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,4 @@
-﻿import { getServerAuthSession } from "@/lib/auth";
+import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   Users,
@@ -22,8 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
+import { tr, enUS } from "date-fns/locale";
+import { formatDateLocale } from "@/lib/status-helpers";
 
 export default async function DashboardPage({
 }: {
@@ -31,6 +33,12 @@ export default async function DashboardPage({
   const session = await getServerAuthSession();
 
   if (!session) return null;
+
+  const t = await getTranslations("dashboard");
+  const tCommon = await getTranslations("common");
+  const tStatus = await getTranslations("status");
+  const locale = await getLocale();
+  const dateLocale = locale === "tr" ? tr : enUS;
 
   const employee = await prisma.employee.findUnique({
     where: { userId: session.user.id },
@@ -88,11 +96,7 @@ export default async function DashboardPage({
     if (renewalThisYear < now) {
       renewalThisYear.setFullYear(currentYear + 1);
     }
-    nextRenewalDate = renewalThisYear.toLocaleDateString("tr-TR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    nextRenewalDate = formatDateLocale(renewalThisYear.toISOString(), locale);
   }
 
   // Upcoming Leaves
@@ -109,10 +113,10 @@ export default async function DashboardPage({
       <div>
         <div className="space-y-1">
           <CardTitle className="text-xl">
-            Hoş Geldiniz, {session.user.name}
+            {t("welcome", { name: session.user.name || "" })}
           </CardTitle>
           <CardDescription>
-            İzin durumunuzu ve şirket bilgilerini buradan takip edebilirsiniz.
+            {t("subtitle")}
           </CardDescription>
         </div>
       </div>
@@ -123,58 +127,58 @@ export default async function DashboardPage({
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex items-center gap-x-1">
-                <CardTitle>Yıllık İzin Hakkı</CardTitle>
+                <CardTitle>{t("annualLeaveQuota")}</CardTitle>
                 <CalendarDays className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="pb-3">
-                <div className="text-2xl font-bold">{totalAnnualQuota} Gün</div>
+                <div className="text-2xl font-bold">{t("daysCount", { count: totalAnnualQuota })}</div>
                 <div className="flex flex-col gap-1 mt-1">
                   <p className={`text-xs font-medium ${remAnnual < 0 ? "text-rose-600" : "text-muted-foreground"}`}>
                     {remAnnual < 0
-                      ? `${Math.abs(remAnnual)} Gün Borç`
-                      : `${remAnnual} Gün Kalan`}
+                      ? t("daysDebt", { count: Math.abs(remAnnual) })
+                      : t("daysRemaining", { count: remAnnual })}
                   </p>
                   <p className="text-[10px] text-muted-foreground leading-tight">
-                    Maksimum borçlanma: 5 Gün
+                    {t("maxDebt")}
                   </p>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex items-center gap-x-1">
-                <CardTitle>Kullanılan</CardTitle>
+                <CardTitle>{t("used")}</CardTitle>
                 <ArrowDownRight className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="pb-3">
-                <div className="text-2xl font-bold">{annualLeaveUsed} Gün</div>
+                <div className="text-2xl font-bold">{t("daysCount", { count: annualLeaveUsed })}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Yıllık İzin (Onaylı)
+                  {t("annualLeaveApproved")}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex items-center gap-x-1">
-                <CardTitle>Diğer İzinler</CardTitle>
+                <CardTitle>{t("otherLeaves")}</CardTitle>
                 <Flag className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="pb-3">
-                <div className="text-2xl font-bold">{otherLeaveUsed} Gün</div>
+                <div className="text-2xl font-bold">{t("daysCount", { count: otherLeaveUsed })}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Mazeret, Sağlık vb.
+                  {t("excuseHealthEtc")}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex items-center gap-x-1">
-                <CardTitle>Genel Toplam</CardTitle>
+                <CardTitle>{t("grandTotal")}</CardTitle>
                 <History className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="pb-3">
                 <div className="text-2xl font-bold">
-                  {annualLeaveUsed + otherLeaveUsed} Gün
+                  {t("daysCount", { count: annualLeaveUsed + otherLeaveUsed })}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Tüm Talepler
+                  {t("allRequests")}
                 </p>
               </CardContent>
             </Card>
@@ -183,26 +187,25 @@ export default async function DashboardPage({
           {/* Usage Detail */}
           <Card>
             <CardHeader>
-              <CardTitle>İzin Kullanım Bilgileri</CardTitle>
+              <CardTitle>{t("leaveUsageInfo")}</CardTitle>
               <CardDescription>
-                Yıllık izin durumunuzun detaylı özeti.
+                {t("leaveUsageDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 mt-4 pb-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">
-                    Yıllık İzin Kullanım Oranı
+                    {t("annualUsageRate")}
                   </span>
                   <span className="text-muted-foreground">
-                    {annualLeaveUsed} / {totalAnnualQuota} Gün ( %
-                    {Math.round(annualWorkProgress)} )
+                    {t("usageRateDetail", { used: annualLeaveUsed, total: totalAnnualQuota, percent: Math.round(annualWorkProgress) })}
                   </span>
                 </div>
                 <Progress value={annualWorkProgress} />
 
                 <span className="text-muted-foreground text-right block text-sm">
-                  Sonraki Devir Tarihi: {nextRenewalDate}
+                  {t("nextRenewalDate", { date: nextRenewalDate })}
                 </span>
               </div>
             </CardContent>
@@ -214,7 +217,7 @@ export default async function DashboardPage({
           <Card>
             <CardHeader className="flex items-center justify-between">
               <div>
-                <CardTitle>Yaklaşan İzinler</CardTitle>
+                <CardTitle>{t("upcomingLeaves")}</CardTitle>
               </div>
               <Badge variant="outline">{upcomingLeaves.length}</Badge>
             </CardHeader>
@@ -235,15 +238,13 @@ export default async function DashboardPage({
                         </CardTitle>
                         <div className="flex items-center justify-between">
                           <CardDescription className="text-xs">
-                            {new Date(req.startDate).toLocaleDateString(
-                              "tr-TR",
-                            )}{" "}
+                            {formatDateLocale(req.startDate.toISOString(), locale)}{" "}
                             -{" "}
-                            {new Date(req.endDate).toLocaleDateString("tr-TR")}
+                            {formatDateLocale(req.endDate.toISOString(), locale)}
                           </CardDescription>
                           <Badge variant="secondary">
                             {formatDistanceToNow(req.startDate, {
-                              locale: tr,
+                              locale: dateLocale,
                               addSuffix: true,
                             })}
                           </Badge>
@@ -255,7 +256,7 @@ export default async function DashboardPage({
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <CalendarDays className="size-8 text-muted-foreground/20" />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Planlanmış izin bulunmuyor.
+                      {t("noPlannedLeaves")}
                     </p>
                   </div>
                 )}
@@ -266,7 +267,7 @@ export default async function DashboardPage({
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-bold">
-                Son Taleplerim
+                {t("recentRequests")}
               </CardTitle>
               <Button variant="ghost" size="icon" asChild>
                 <Link href={`/dashboard/leaves`}>
@@ -288,7 +289,7 @@ export default async function DashboardPage({
                           {req.leaveType.name}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {new Date(req.createdAt).toLocaleDateString("tr-TR")}
+                          {formatDateLocale(req.createdAt.toISOString(), locale)}
                         </CardDescription>
                       </div>
                       <Badge
@@ -302,16 +303,16 @@ export default async function DashboardPage({
                         className="text-[10px] uppercase font-bold"
                       >
                         {req.status === "APPROVED"
-                          ? "Onay"
+                          ? tStatus("approvedShort")
                           : req.status === "REJECTED"
-                            ? "Red"
-                            : "Bekliyor"}
+                            ? tStatus("rejectedShort")
+                            : tStatus("pendingShort")}
                       </Badge>
                     </Link>
                   ))
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    Kayıt bulunamadı.
+                    {tCommon("noRecords")}
                   </p>
                 )}
               </div>
@@ -320,7 +321,7 @@ export default async function DashboardPage({
               <CardFooter className="py-3">
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/dashboard/leaves`}>
-                    Tüm Geçmişi Görüntüle
+                    {tCommon("viewHistory")}
                   </Link>
                 </Button>
               </CardFooter>
