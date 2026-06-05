@@ -42,6 +42,14 @@ içeriyor kimi değil) yetkilendirme davranışını değiştirmemek adına dikk
 testle yapılmalı. Sunucu tarafı için `isHrDepartmentName` + entity bazlı yardımcı
 genişletilebilir.
 
+## 4c. Bordro: asgari ücret istisna yöntemi (muhasebeci teyidi)
+`payroll-engine.ts` asgari ücret gelir vergisi istisnasını "matrahtan düşme"
+yöntemiyle uyguluyor (kullanıcı tarafından verilen formül). Resmi 2022+ yöntem,
+istisnayı matrahı azaltmak yerine asgari ücret üzerinden hesaplanan vergiyi
+düşmek şeklindedir; yüksek maaşlılarda fark oluşur. SGK tavanı düzeltildi
+(7.5× asgari ücret). İstisna yöntemi mali müşavir teyidiyle netleştirilmeli;
+ayrıca kümülatif matrah istisna-öncesi/sonrası tutarlılığı gözden geçirilmeli.
+
 ## 5. Test altyapısı (yok)
 Hiç test yok. Kritik saf mantık (payroll-engine, leave-engine, pdks-engine) için
 Vitest + birim testleri eklenmeli — refactor güvenliği için en yüksek değerli yatırım.

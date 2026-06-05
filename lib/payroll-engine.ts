@@ -1,6 +1,6 @@
 /**
- * Payroll Calculation Engine - Turkish Tax Standards (2025)
- * 
+ * Payroll Calculation Engine - Turkish Tax Standards (2026)
+ *
  * Logic follows the standard Gross-to-Net formula used in Turkey.
  */
 
@@ -26,6 +26,10 @@ const ASGARI_UCRET_BRUT = 33030.00;
 const ASGARI_UCRET_NET = 28075.50;
 const ASGARI_UCRET_MATRAH_ISTISNA = 28075.50; // Brüt - %15 Prim
 
+// SGK primine esas kazancın tavanı = 7.5 × brüt asgari ücret. Bu tutarın üstündeki
+// kazançtan SGK/işsizlik primi kesilmez (5510 sayılı Kanun m.82).
+const SGK_TAVAN = ASGARI_UCRET_BRUT * 7.5;
+
 const INCOME_TAX_BRACKETS = [
     { threshold: 250000, rate: 0.15 },
     { threshold: 600000, rate: 0.20 },
@@ -44,14 +48,17 @@ export function calculateNetFromGross(
     gross: number,
     cumulativeMatrah: number = 0
 ): PayrollResult {
+    // SGK primine esas kazanç tavanla sınırlıdır
+    const sgkBase = Math.min(gross, SGK_TAVAN);
+
     // 1. SGK Payı (%14) & İşsizlik Payı (%1)
-    const sgkEmployee = gross * 0.14;
-    const unemploymentEmployee = gross * 0.01;
+    const sgkEmployee = sgkBase * 0.14;
+    const unemploymentEmployee = sgkBase * 0.01;
     const totalPrim = sgkEmployee + unemploymentEmployee;
 
     // 1.1 SGK İşveren Payı (%15.5 - with 5% incentive) & İşsizlik İşveren Payı (%2)
-    const sgkEmployer = gross * 0.155;
-    const unemploymentEmployer = gross * 0.02;
+    const sgkEmployer = sgkBase * 0.155;
+    const unemploymentEmployer = sgkBase * 0.02;
 
     // 2. Gelir Vergisi Matrahı
     const incomeTaxMatrah = gross - totalPrim;
