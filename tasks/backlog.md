@@ -28,10 +28,19 @@ Bu turda en büyük 6 sayfa bölündü. Geri kalan ~24 sayfadan en büyükleri:
 - `company-settings/page.tsx` (318)
 Aynı kalıp: route-local `_components/` + `use-*.ts` hook + ince `page.tsx`.
 
-## 4. Onay timeline'ı paylaşılan bileşene çıkar (düşük öncelik)
-`hr/attendance-requests`, `hr/approvals`, `hr/leave-requests` neredeyse aynı
-dikey onay zaman-çizelgesini tekrarlıyor. `components/shared/` altında tek bir
-parametrik `ApprovalTimeline` bileşenine birleştirilebilir.
+## 4. Onay timeline'ı paylaşılan bileşene çıkar ✅ YAPILDI
+3 sayfadaki kopya timeline → tek `components/shared/approval-timeline.tsx`.
+Ayrıca İK/rol tespiti `lib/access.ts`'te merkezileştirildi (`isHrUser`,
+`canManageCompany`) ve client tarafındaki ~tüm kopya string predikatları
+(hook'lar, sidebar, pdks) bununla değiştirildi.
+
+## 4b. API route'larında rol/İK kontrolünü merkezileştir (auth-hassas)
+`lib/access.ts` helper'ları henüz API route'larına uygulanmadı; oralarda hâlâ
+kopya string kontrolleri var (`isHR`, `isAdmin`, `['İK','İnsan Kaynakları']`).
+Predikatlar dosyadan dosyaya küçük farklarla değiştiği için (kimi SUPER_ADMIN
+içeriyor kimi değil) yetkilendirme davranışını değiştirmemek adına dikkatle ve
+testle yapılmalı. Sunucu tarafı için `isHrDepartmentName` + entity bazlı yardımcı
+genişletilebilir.
 
 ## 5. Test altyapısı (yok)
 Hiç test yok. Kritik saf mantık (payroll-engine, leave-engine, pdks-engine) için

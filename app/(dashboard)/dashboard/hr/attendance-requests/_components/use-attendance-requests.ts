@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { apiUrl } from "@/lib/api";
+import { isHrUser } from "@/lib/access";
 import type { AttendanceCorrection } from "./types";
 
 /**
@@ -19,10 +20,7 @@ export function useAttendanceRequests() {
   const [rejectComment, setRejectComment] = useState("");
 
   const userId = session?.user?.id;
-  const isHR =
-    (session?.user as any)?.departmentName === "İK" ||
-    (session?.user as any)?.departmentName === "İnsan Kaynakları" ||
-    (session?.user as any)?.role === "COMPANY_ADMIN";
+  const isHR = isHrUser(session?.user);
 
   const fetchRequests = useCallback(async () => {
     if (!session?.user?.id) return;

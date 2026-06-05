@@ -35,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { LeaveApprovalTimeline } from "./leave-approval-timeline";
+import { ApprovalTimeline } from "@/components/shared/approval-timeline";
 import type { LeaveRequest } from "./types";
 
 interface Props {
@@ -163,7 +163,7 @@ export function RequestCard({
             </div>
 
             <div className="lg:col-span-4 border-l pl-8 space-y-6">
-              <LeaveApprovalTimeline approvals={request.approvals} />
+              <ApprovalTimeline approvals={request.approvals} />
             </div>
           </div>
         </CardContent>

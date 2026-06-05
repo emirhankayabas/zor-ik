@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { ApprovalTimeline } from "./approval-timeline";
+import { ApprovalTimeline } from "@/components/shared/approval-timeline";
 import type { AttendanceCorrection } from "./types";
 
 interface Props {

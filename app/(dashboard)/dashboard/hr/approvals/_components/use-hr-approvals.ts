@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { apiUrl } from "@/lib/api";
+import { isHrUser } from "@/lib/access";
 import type { CategorizedRequests, LeaveRequest } from "./types";
 
 /**
@@ -20,10 +21,7 @@ export function useHrApprovals() {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const isAuthorized =
-    (session?.user as any)?.departmentName === "İK" ||
-    (session?.user as any)?.departmentName === "İnsan Kaynakları" ||
-    (session?.user as any)?.role === "COMPANY_ADMIN";
+  const isAuthorized = isHrUser(session?.user);
 
   const fetchHRRequests = useCallback(async () => {
     if (!session?.user?.id) return;

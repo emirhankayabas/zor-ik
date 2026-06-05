@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { isHrUser, canManageCompany } from "@/lib/access";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 
@@ -64,13 +65,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
     },
     {
       label: t("companyManagement"),
-      hide: !(
-        session?.user?.role === "COMPANY_ADMIN" ||
-        session?.user?.role === "SUPER_ADMIN" ||
-        session?.user?.role === "MANAGER" ||
-        session?.user?.departmentName === "İK" ||
-        session?.user?.departmentName === "İnsan Kaynakları"
-      ),
+      hide: !canManageCompany(session?.user),
       items: [
         {
           title: t("employees"),
@@ -121,12 +116,9 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
     },
     {
       label: t("approvals"),
-      hide: !(session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'COMPANY_ADMIN' || session?.user?.role === 'MANAGER' || session?.user?.departmentName === "İK" || session?.user?.departmentName === "İnsan Kaynakları"),
+      hide: !canManageCompany(session?.user),
       items: [
-        ...(session?.user?.departmentName === "İK" ||
-          session?.user?.departmentName === "İnsan Kaynakları" ||
-          session?.user?.role === "COMPANY_ADMIN" ||
-          session?.user?.role === "SUPER_ADMIN"
+        ...(isHrUser(session?.user)
           ? [
             {
               title: t("hrApprovals"),
@@ -135,11 +127,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
             },
           ]
           : []),
-        ...(session?.user?.role === "COMPANY_ADMIN" ||
-          session?.user?.role === "SUPER_ADMIN" ||
-          session?.user?.role === "MANAGER" ||
-          session?.user?.departmentName === "İK" ||
-          session?.user?.departmentName === "İnsan Kaynakları"
+        ...(canManageCompany(session?.user)
           ? [
             {
               title: t("leaveApprovals"),
