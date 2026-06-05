@@ -54,11 +54,11 @@ export function calculateNetFromGross(
     const unemploymentEmployer = gross * 0.02;
 
     // 2. Gelir Vergisi Matrahı
-    let incomeTaxMatrah = gross - totalPrim;
+    const incomeTaxMatrah = gross - totalPrim;
 
     // 3. Asgari Ücret GV İstisnası (Matrah üzerinden düşüm - user formula)
     const asgariUcretMatrahIstisnası = ASGARI_UCRET_MATRAH_ISTISNA;
-    let taxableMatrah = Math.max(0, incomeTaxMatrah - asgariUcretMatrahIstisnası);
+    const taxableMatrah = Math.max(0, incomeTaxMatrah - asgariUcretMatrahIstisnası);
 
     // 4. Gelir Vergisi Hesaplama (Dilimli Oranlar)
     let remainingMatrah = taxableMatrah;
