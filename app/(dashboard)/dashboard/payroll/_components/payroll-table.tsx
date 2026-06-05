@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
@@ -134,14 +135,18 @@ export function PayrollTable({ payrollData, isLoading, month, year, months }: Pr
               payrollData.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="border px-4 py-2">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm whitespace-nowrap">
+                    <Link
+                      href={`/dashboard/payroll/${p.id}`}
+                      className="flex flex-col group"
+                      title={t("title")}
+                    >
+                      <span className="font-bold text-sm whitespace-nowrap group-hover:text-primary group-hover:underline underline-offset-2">
                         {p.employee?.user?.name || t("unnamed")}
                       </span>
                       <span className="text-[10px] text-muted-foreground truncate max-w-37.5">
                         {p.employee?.user?.email}
                       </span>
-                    </div>
+                    </Link>
                   </TableCell>
                   <TableCell className="border text-right font-bold pr-4">
                     {(p.netSalary || 0).toLocaleString("tr-TR", {
