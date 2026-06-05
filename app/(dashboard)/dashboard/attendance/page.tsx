@@ -12,6 +12,7 @@ import {
   formatDateLocale,
 } from "@/lib/status-helpers";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 import { useLocale } from "next-intl";
 import {
   Calendar as CalendarIcon,
@@ -71,6 +72,7 @@ interface AttendanceCorrection {
 
 export default function AttendancePage() {
   const t = useTranslations("attendance");
+  const confirm = useConfirm();
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const tRoles = useTranslations("roles");
@@ -99,8 +101,11 @@ export default function AttendancePage() {
   };
 
   const handleDelete = async (requestId: string) => {
-    if (!confirm(t("cancelConfirm")))
-      return;
+    const confirmed = await confirm({
+      description: t("cancelConfirm"),
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     setActionLoading(requestId);
     try {

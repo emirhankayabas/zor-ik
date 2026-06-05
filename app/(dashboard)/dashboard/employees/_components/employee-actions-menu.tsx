@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 
 interface EmployeeActionsMenuProps {
   employeeId: string;
@@ -23,11 +24,16 @@ interface EmployeeActionsMenuProps {
 
 export function EmployeeActionsMenu({ employeeId, isActive }: EmployeeActionsMenuProps) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [loading, setLoading] = useState(false);
 
   const handleToggleActive = async () => {
     const action = isActive ? "pasife almak" : "aktif etmek";
-    if (!confirm(`Bu çalışanı ${action} istediğinize emin misiniz?`)) return;
+    const confirmed = await confirm({
+      description: `Bu çalışanı ${action} istediğinize emin misiniz?`,
+      destructive: isActive,
+    });
+    if (!confirmed) return;
 
     setLoading(true);
     try {

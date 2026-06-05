@@ -34,6 +34,7 @@ import {
 import { ArrowLeft, Save, Loader2, Building2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 
 export default function EditDepartmentPage({
   params,
@@ -43,6 +44,7 @@ export default function EditDepartmentPage({
   const { locale, id } = use(params);
   const router = useRouter();
   const t = useTranslations("departments");
+  const confirm = useConfirm();
   const tCommon = useTranslations("common");
   const tv = useTranslations("validation");
   const tRoles = useTranslations("roles");
@@ -131,7 +133,11 @@ export default function EditDepartmentPage({
   };
 
   const handleDelete = async () => {
-    if (!confirm(tCommon("confirm"))) return;
+    const confirmed = await confirm({
+      description: tCommon("confirm"),
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     setIsDeleting(true);
     try {
