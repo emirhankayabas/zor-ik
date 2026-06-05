@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { getLeaveRequestSchema } from '@/lib/validations/employee';
+import { canManageCompany } from '@/lib/access';
 import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests/[id] - Get a single leave request
@@ -49,16 +50,14 @@ export async function GET(
             }
         });
 
-        if (!leaveRequest) {
+        // Multi-tenant izolasyonu: farklı şirketin kaydı görünmesin
+        if (!leaveRequest || leaveRequest.companyId !== session.user.companyId) {
             return NextResponse.json({ error: 'Leave request not found' }, { status: 404 });
         }
 
-        // Access check: Admin, Manager of the employee, or the Employee themselves
+        // Erişim: kaydın sahibi VEYA şirket yönetimi yetkisi olan (İK/yönetici)
         const isOwner = leaveRequest.employee.userId === session.user.id;
-        const isAdmin = session.user.role === 'COMPANY_ADMIN';
-        // (Manager check omitted for simplicity, but owner/admin covers main cases)
-
-        if (!isOwner && !isAdmin) {
+        if (!isOwner && !canManageCompany(session.user)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -86,7 +85,7 @@ export async function PATCH(
             include: { employee: true }
         });
 
-        if (!existing) {
+        if (!existing || existing.companyId !== session.user.companyId) {
             return NextResponse.json({ error: 'Not found' }, { status: 404 });
         }
 
@@ -136,7 +135,7 @@ export async function DELETE(
             include: { employee: true }
         });
 
-        if (!existing) {
+        if (!existing || existing.companyId !== session.user.companyId) {
             return NextResponse.json({ error: 'Not found' }, { status: 404 });
         }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { canManageCompany } from '@/lib/access';
 
 // GET /api/attendance-corrections/[id] - Get a single attendance correction request
 export async function GET(
@@ -46,15 +47,14 @@ export async function GET(
             }
         });
 
-        if (!correction) {
+        // Multi-tenant izolasyonu
+        if (!correction || correction.companyId !== session.user.companyId) {
             return NextResponse.json({ error: 'Attendance correction not found' }, { status: 404 });
         }
 
-        // Access check: Admin or the Employee themselves
+        // Erişim: kaydın sahibi VEYA şirket yönetimi yetkisi olan (İK/yönetici)
         const isOwner = correction.employee.userId === session.user.id;
-        const isAdmin = session.user.role === 'COMPANY_ADMIN' || session.user.role === 'SUPER_ADMIN';
-
-        if (!isOwner && !isAdmin) {
+        if (!isOwner && !canManageCompany(session.user)) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
@@ -82,7 +82,7 @@ export async function DELETE(
             include: { employee: true }
         });
 
-        if (!existing) {
+        if (!existing || existing.companyId !== session.user.companyId) {
             return NextResponse.json({ error: 'Not found' }, { status: 404 });
         }
 
