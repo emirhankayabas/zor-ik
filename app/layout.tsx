@@ -1,8 +1,19 @@
 import React from "react";
+import type { Metadata } from "next";
 import "./globals.css";
 import { RootProvider } from "@/components/providers/root-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s · Zor İK",
+    default: "Zor İK — İK Yönetim Sistemi",
+  },
+  description:
+    "Türk iş hukukuna uygun çok kiracılı İK platformu: çalışan, izin, bordro, PDKS ve onay yönetimi.",
+  applicationName: "Zor İK",
+};
 
 interface Props {
   children: React.ReactNode;
