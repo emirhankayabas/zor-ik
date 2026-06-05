@@ -63,6 +63,18 @@ Plan: `~/.claude/plans/cached-brewing-glacier.md`
 - Multi-tenant `companyId` filtreleri, API mantığı, Türkçe metinler, hesaplama motorları,
   DB şeması: **hiç dokunulmadı**. Yalnızca dosya organizasyonu + bileşen ayrımı.
 
-### Kapsam dışı bırakılanlar (istenirse sonra)
-- Gerçek edge `middleware.ts`, kalan ~24 sayfanın bölünmesi, `any` tip sıkılaştırma,
-  `confirm()` → Sonner dialog dönüşümü (CLAUDE.md tercihi ama bu turda davranış korundu).
+## FAZ 3 — Güvenlik & kalite (full yetkiyle, commit'lendi)
+- [x] **Güvenlik:** `app/api/debug/seed` (auth'suz, tüm tenant'lara yazan public GET) silindi.
+- [x] **Düzeltme:** `proxy.ts` geri alındı — Next 16'da middleware convention'ı "proxy";
+      yanlışlıkla silinmişti, route koruması zaten aktifti (`ƒ Proxy (Middleware)`).
+- [x] **confirm() → AlertDialog:** `ConfirmProvider` + `useConfirm()` (5 çağrı yeri).
+- [x] **Lint:** `prefer-const` auto-fix'leri (payroll-engine, dashboard page).
+
+### Commit'ler (branch: refactor/cleanup-and-componentization)
+1. `refactor: dosya yapısını temizle ve şişkin sayfaları component'lere böl`
+2. `fix(security): debug/seed kaldır, proxy korumasını geri al`
+3. `refactor: native confirm() yerine AlertDialog onay akışı`
+4. `chore: lint prefer-const otomatik düzeltmeleri`
+
+### Kalan işler → `tasks/backlog.md`
+`any` tip sıkılaştırma, kalan ~24 sayfa, test altyapısı, onay timeline birleştirme.
