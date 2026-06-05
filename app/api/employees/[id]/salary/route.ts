@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { isHrUser } from '@/lib/access';
 
 // PATCH /api/employees/[id]/salary - Set or update employee salary
 export async function PATCH(
@@ -10,11 +11,8 @@ export async function PATCH(
     try {
         const { id } = await params;
         const session = await getServerAuthSession();
-        const isHR = session?.user?.role === 'COMPANY_ADMIN' ||
-            session?.user?.departmentName === 'İK' ||
-            session?.user?.departmentName === 'İnsan Kaynakları';
 
-        if (!session || !isHR) {
+        if (!session || !isHrUser(session.user)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

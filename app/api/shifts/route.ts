@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { getShiftSchema } from "@/lib/validations/employee";
+import { canManageCompany } from "@/lib/access";
 import { getTranslations } from "next-intl/server";
 
-const ALLOWED_ROLES = ["SUPER_ADMIN", "COMPANY_ADMIN", "MANAGER"];
-const ALLOWED_DEPTS = ["İK", "İnsan Kaynakları"];
-
 function canManageShifts(session: any) {
-  if (!session) return false;
-  if (ALLOWED_ROLES.includes(session.user.role)) return true;
-  if (ALLOWED_DEPTS.includes(session.user.departmentName)) return true;
-  return false;
+  return canManageCompany(session?.user);
 }
 
 

@@ -2,15 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-
-const ALLOWED_ROLES = ["SUPER_ADMIN", "COMPANY_ADMIN", "MANAGER"];
-const ALLOWED_DEPTS = ["İK", "İnsan Kaynakları"];
+import { canManageCompany } from "@/lib/access";
 
 function canManageShifts(session: any) {
-  if (!session) return false;
-  if (ALLOWED_ROLES.includes(session.user.role)) return true;
-  if (ALLOWED_DEPTS.includes(session.user.departmentName)) return true;
-  return false;
+  return canManageCompany(session?.user);
 }
 
 const updateShiftSchema = z.object({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { calculateNetFromGross } from '@/lib/payroll-engine';
+import { isHrUser } from '@/lib/access';
 
 // POST /api/payroll/generate - Generate payroll for all employees
 export async function POST(request: NextRequest) {
@@ -17,10 +18,10 @@ export async function POST(request: NextRequest) {
             include: { employee: { include: { department: true } } }
         });
 
-        const isHR = user?.role === 'COMPANY_ADMIN' ||
-            user?.role === 'SUPER_ADMIN' ||
-            user?.employee?.department?.name === 'İK' ||
-            user?.employee?.department?.name === 'İnsan Kaynakları';
+        const isHR = isHrUser({
+            role: user?.role,
+            departmentName: user?.employee?.department?.name,
+        });
 
         if (!isHR) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
