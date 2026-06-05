@@ -90,7 +90,7 @@ export default async function DashboardPage({
   if (employee?.hireDate) {
     const hireDate = new Date(employee.hireDate);
     const currentYear = now.getFullYear();
-    let renewalThisYear = new Date(hireDate);
+    const renewalThisYear = new Date(hireDate);
     renewalThisYear.setFullYear(currentYear);
 
     if (renewalThisYear < now) {

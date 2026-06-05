@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
 import { getDepartmentSchema } from '@/lib/validations/employee';
+import { isHrDepartmentName } from '@/lib/access';
 import { getTranslations } from 'next-intl/server';
 
 export async function GET(
@@ -95,7 +96,7 @@ export async function DELETE(
             where: { id, companyId }
         });
 
-        if (deptToDelete?.name === 'İK' || deptToDelete?.name === 'İnsan Kaynakları') {
+        if (isHrDepartmentName(deptToDelete?.name)) {
             const tDepartments = await getTranslations('departments');
             return NextResponse.json(
                 { error: tDepartments('cannotDeleteHR') || 'İnsan Kaynakları departmanı silinemez' },

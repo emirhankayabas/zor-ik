@@ -1,4 +1,4 @@
-import { differenceInDays, differenceInYears, eachDayOfInterval, format, isSameDay } from "date-fns";
+import { differenceInYears, eachDayOfInterval, format, isSameDay } from "date-fns";
 
 export interface Holiday {
     date: Date;
@@ -49,16 +49,16 @@ export function calculateLeaveDays(
 }
 
 /**
- * Calculates annual leave quota based on seniority (Turkish Labor Law standards).
- * 1-5 years: 14 days
- * 5-15 years: 20 days
- * 15+ years: 26 days
+ * Calculates annual leave quota based on seniority (Turkish Labor Law, İş Kanunu m.53).
+ * - 1 yıldan 5 yıla kadar (5 yıl DAHİL): 14 gün
+ * - 5 yıldan fazla, 15 yıldan az: 20 gün
+ * - 15 yıl (DAHİL) ve daha fazla: 26 gün
  */
 export function calculateSeniorityQuota(hireDate: Date): number {
     const yearsOfService = differenceInYears(new Date(), new Date(hireDate));
 
     if (yearsOfService < 1) return 0;
-    if (yearsOfService < 5) return 14;
+    if (yearsOfService <= 5) return 14;
     if (yearsOfService < 15) return 20;
     return 26;
 }

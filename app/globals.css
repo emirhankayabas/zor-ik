@@ -132,3 +132,23 @@
     cursor: pointer !important;
   }
 }
+
+/* Bordro yazdırma: sayfa kromunu gizle, yalnızca #payslip-print'i göster */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #payslip-print,
+  #payslip-print * {
+    visibility: visible;
+  }
+  #payslip-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

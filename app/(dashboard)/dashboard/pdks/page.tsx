@@ -39,6 +39,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatDateLocale, toLocalDateString } from "@/lib/status-helpers";
+import { canManageCompany } from "@/lib/access";
 import { useTranslations, useLocale } from "next-intl";
 
 interface AttendanceLog {
@@ -133,11 +134,7 @@ export default function PDKSPage() {
   const isAllowed =
     sessionStatus !== "authenticated"
       ? null // not yet determined
-      : session?.user?.role === "COMPANY_ADMIN" ||
-        session?.user?.role === "SUPER_ADMIN" ||
-        session?.user?.role === "MANAGER" ||
-        (session?.user as any)?.departmentName === "İK" ||
-        (session?.user as any)?.departmentName === "İnsan Kaynakları";
+      : canManageCompany(session?.user);
 
   const fetchLogs = useCallback(async () => {
     setIsLoading(true);

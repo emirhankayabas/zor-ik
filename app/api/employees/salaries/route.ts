@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { isHrUser } from '@/lib/access';
 
 export async function GET(request: NextRequest) {
     try {
         const session = await getServerAuthSession();
-        const isHR = session?.user?.role === 'COMPANY_ADMIN' ||
-            session?.user?.role === 'SUPER_ADMIN' ||
-            session?.user?.departmentName === 'İK' ||
-            session?.user?.departmentName === 'İnsan Kaynakları';
 
-        if (!session || !isHR) {
+        if (!session || !isHrUser(session.user)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

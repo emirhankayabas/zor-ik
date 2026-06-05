@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { isHrDepartmentName, HR_DEPARTMENT_NAMES } from '@/lib/access';
 import { getAttendanceCorrectionSchema } from '@/lib/validations/employee';
 import { getTranslations } from 'next-intl/server';
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
         }
 
-        const isHRMember = employee.department?.name === 'İnsan Kaynakları' || employee.department?.name === 'İK';
+        const isHRMember = isHrDepartmentName(employee.department?.name);
 
         let requests;
 
@@ -248,7 +249,7 @@ export async function POST(request: NextRequest) {
         let hrAdminId = null;
         const hrDept = await prisma.department.findFirst({
             where: {
-                name: { in: ['İnsan Kaynakları', 'İK'] },
+                name: { in: HR_DEPARTMENT_NAMES },
                 companyId: session.user.companyId
             }
         });

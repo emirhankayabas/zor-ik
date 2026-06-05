@@ -45,6 +45,27 @@ export async function POST(
             );
         }
 
+        // Multi-tenant güvenliği: yalnızca aynı şirket
+        if (approval.attendanceCorrection.companyId !== session.user.companyId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Onay sırasını server tarafında zorla: yönetici onaylamadan İK işlem yapamaz.
+        const priorStepPending = await prisma.approval.findFirst({
+            where: {
+                attendanceCorrectionId: id,
+                approvalOrder: { lt: approval.approvalOrder },
+                status: { not: 'APPROVED' },
+            },
+        });
+
+        if (priorStepPending) {
+            return NextResponse.json(
+                { error: 'Önceki onay adımı tamamlanmadan işlem yapılamaz.' },
+                { status: 400 }
+            );
+        }
+
         // Update approval status
         await prisma.approval.update({
             where: { id: approval.id },

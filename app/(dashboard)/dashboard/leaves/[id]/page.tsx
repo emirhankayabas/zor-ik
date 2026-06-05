@@ -20,6 +20,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 import { useTranslations, useLocale } from "next-intl";
 import { formatDateLocale, getStatusLabel, getStatusStyle, getStatusIcon } from "@/lib/status-helpers";
 import {
@@ -84,6 +85,7 @@ export default function LeaveDetailPage({
 
   const { data: session } = useSession();
   const t = useTranslations("leaves");
+  const confirm = useConfirm();
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const tRoles = useTranslations("roles");
@@ -137,8 +139,11 @@ export default function LeaveDetailPage({
   };
 
   const handleCancel = async () => {
-    if (!confirm(t("cancelConfirm")))
-      return;
+    const confirmed = await confirm({
+      description: t("cancelConfirm"),
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     setIsProcessing("CANCEL");
     try {

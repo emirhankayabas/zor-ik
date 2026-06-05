@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getServerAuthSession } from '@/lib/auth';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { ModeToggle } from '@/components/mode-toggle';
-import { NotificationBell } from '@/components/notification-bell';
-import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb';
+import { ModeToggle } from '@/components/layout/mode-toggle';
+import { NotificationBell } from '@/components/layout/notification-bell';
+import { DynamicBreadcrumb } from '@/components/layout/dynamic-breadcrumb';
 
 export default async function DashboardLayout({
     children,

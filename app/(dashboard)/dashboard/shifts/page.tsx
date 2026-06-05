@@ -54,7 +54,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import ErrorMessage from "@/components/error-message";
+import ErrorMessage from "@/components/shared/error-message";
 
 
 

@@ -3,6 +3,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { getLeaveRequestSchema } from '@/lib/validations/employee';
 import { calculateLeaveDays } from '@/lib/leave-engine';
+import { isHrUser, HR_DEPARTMENT_NAMES } from '@/lib/access';
 import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests - Get leave requests (filtered by role)
@@ -31,8 +32,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
         }
 
-        const isHRMember = employee.department?.name === 'İnsan Kaynakları' || employee.department?.name === 'İK';
-        const isAdmin = session.user.role === 'COMPANY_ADMIN' || session.user.role === 'SUPER_ADMIN' || isHRMember;
+        const isAdmin = isHrUser({ role: session.user.role, departmentName: employee.department?.name });
 
         let leaveRequests;
 
@@ -328,7 +328,7 @@ export async function POST(request: NextRequest) {
 
         const hrDept = await prisma.department.findFirst({
             where: {
-                name: { in: ['İnsan Kaynakları', 'İK'] },
+                name: { in: HR_DEPARTMENT_NAMES },
                 companyId: session.user.companyId
             }
         });

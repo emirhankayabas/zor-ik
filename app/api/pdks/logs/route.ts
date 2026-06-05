@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-
-const ADMIN_ROLES = ["COMPANY_ADMIN", "SUPER_ADMIN", "MANAGER"];
-const HR_DEPTS = ["İK", "İnsan Kaynakları"];
+import { canManageCompany } from "@/lib/access";
 
 function canViewGlobalLogs(session: any) {
-  if (ADMIN_ROLES.includes(session.user.role)) return true;
-  if (HR_DEPTS.includes(session.user.departmentName)) return true;
-  return false;
+  return canManageCompany(session?.user);
 }
 
 // GET /api/pdks/logs - Fetch attendance logs with filters

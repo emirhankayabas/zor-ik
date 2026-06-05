@@ -1,6 +1,9 @@
-import Content from "@/app/(auth)/login/Component/Content";
+import type { Metadata } from "next";
+import LoginForm from "@/app/(auth)/login/_components/login-form";
 import { getServerAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = { title: "Giriş" };
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -13,5 +16,5 @@ export default async function LoginPage({ params }: Props) {
     redirect(`/dashboard`);
   }
 
-  return <Content locale={locale} />;
+  return <LoginForm locale={locale} />;
 }

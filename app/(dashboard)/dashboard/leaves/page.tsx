@@ -13,6 +13,7 @@ import {
   formatDateLocale,
 } from "@/lib/status-helpers";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 import {
   Calendar as CalendarIcon,
   Plus,
@@ -80,6 +81,7 @@ interface LeaveRequest {
 export default function LeavesPage() {
   const { data: session } = useSession();
   const t = useTranslations("leaves");
+  const confirm = useConfirm();
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const tRoles = useTranslations("roles");
@@ -107,8 +109,11 @@ export default function LeavesPage() {
 
 
   const handleDelete = async (requestId: string) => {
-    if (!confirm(t("deleteConfirm")))
-      return;
+    const confirmed = await confirm({
+      description: t("deleteConfirm"),
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     setActionLoading(requestId);
     try {
