@@ -1,4 +1,4 @@
-import Content from "@/app/(auth)/login/Component/Content";
+import LoginForm from "@/app/(auth)/login/_components/login-form";
 import { getServerAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -13,5 +13,5 @@ export default async function LoginPage({ params }: Props) {
     redirect(`/dashboard`);
   }
 
-  return <Content locale={locale} />;
+  return <LoginForm locale={locale} />;
 }

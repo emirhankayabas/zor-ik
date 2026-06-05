@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/layout/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, LogIn } from "lucide-react";
 import { getServerAuthSession } from "@/lib/auth";

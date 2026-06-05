@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import MemberManager from "./Component/MemberManager";
+import MemberManager from "./_components/member-manager";
 import { getTranslations } from "next-intl/server";
 
 export default async function ManageMembersPage({

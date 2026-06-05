@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { EmployeeActionsMenu } from "@/components/employee-actions-menu";
+import { EmployeeActionsMenu } from "./_components/employee-actions-menu";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -27,7 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { EmployeeFilters } from "@/components/employee-filters";
+import { EmployeeFilters } from "./_components/employee-filters";
 import { UserRole } from "@prisma/client";
 
 export default async function EmployeesPage({

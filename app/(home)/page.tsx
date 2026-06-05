@@ -1,5 +1,5 @@
-import Content from "@/app/(home)/Component/Content";
+import HomeContent from "@/app/(home)/_components/home-content";
 
 export default async function Page() {
-  return <Content />;
+  return <HomeContent />;
 }

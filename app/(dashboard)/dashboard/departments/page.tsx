@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import DepartmentList from "./Component/DepartmentList";
+import DepartmentList from "./_components/department-list";
 import { getTranslations } from "next-intl/server";
 
 export default async function DepartmentsPage({

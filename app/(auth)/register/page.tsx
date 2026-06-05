@@ -1,4 +1,4 @@
-import Content from "@/app/(auth)/register/Component/Content";
+import RegisterForm from "@/app/(auth)/register/_components/register-form";
 import { getServerAuthSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -13,5 +13,5 @@ export default async function RegisterPage({ params }: Props) {
     redirect(`/dashboard`);
   }
 
-  return <Content locale={locale} />;
+  return <RegisterForm locale={locale} />;
 }

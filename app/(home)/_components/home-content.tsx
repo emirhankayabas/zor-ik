@@ -14,7 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-export default function Content() {
+export default function HomeContent() {
   return (
     <div className="flex flex-col">
       <section className="relative pt-20 pb-32 overflow-hidden">

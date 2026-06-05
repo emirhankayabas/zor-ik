@@ -37,7 +37,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
-import ErrorMessage from "@/components/error-message";
+import ErrorMessage from "@/components/shared/error-message";
 import { toLocalDateString } from "@/lib/status-helpers";
 
 import { getLeaveRequestSchema } from "@/lib/validations/employee";
