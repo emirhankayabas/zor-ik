@@ -1,70 +1,7 @@
 import prisma from "@/lib/prisma";
+import { parseTime, calculateAttendanceMetrics } from "@/lib/attendance-calc";
 
-/**
- * Parse "HH:mm" string into { hours, minutes }
- */
-function parseTime(timeStr: string): { hours: number; minutes: number } {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return { hours, minutes };
-}
-
-/**
- * Convert a Date to minutes since midnight
- */
-function dateToMinutes(date: Date): number {
-  return date.getHours() * 60 + date.getMinutes();
-}
-
-/**
- * Convert "HH:mm" to minutes since midnight
- */
-function timeToMinutes(timeStr: string): number {
-  const { hours, minutes } = parseTime(timeStr);
-  return hours * 60 + minutes;
-}
-
-/**
- * Calculate attendance metrics based on shift and actual times.
- */
-export function calculateAttendanceMetrics(
-  shift: { startTime: string; endTime: string; breakMinutes: number },
-  checkInTime: Date,
-  checkOutTime: Date | null,
-) {
-  const shiftStart = timeToMinutes(shift.startTime);
-  const shiftEnd = timeToMinutes(shift.endTime);
-
-  const actualIn = dateToMinutes(checkInTime);
-
-  let lateMinutes = 0;
-  let earlyMinutes = 0;
-  let overtimeMinutes = 0;
-  let totalWorkMinutes = 0;
-
-  // Late entry: arrived after shift start
-  if (actualIn > shiftStart) {
-    lateMinutes = actualIn - shiftStart;
-  }
-
-  if (checkOutTime) {
-    const actualOut = dateToMinutes(checkOutTime);
-
-    // Early exit: left before shift end
-    if (actualOut < shiftEnd) {
-      earlyMinutes = shiftEnd - actualOut;
-    }
-
-    // Overtime: stayed after shift end
-    if (actualOut > shiftEnd) {
-      overtimeMinutes = actualOut - shiftEnd;
-    }
-
-    // Total work = checkout - checkin - break
-    totalWorkMinutes = Math.max(0, actualOut - actualIn - shift.breakMinutes);
-  }
-
-  return { lateMinutes, earlyMinutes, overtimeMinutes, totalWorkMinutes };
-}
+export { calculateAttendanceMetrics };
 
 /**
  * Process a card swipe from an external PDKS reader.
