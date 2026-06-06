@@ -267,6 +267,15 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
               >
                 <DropdownMenuItem asChild>
                   <Link
+                    href={`/dashboard/profile`}
+                    className="flex items-center gap-2 cursor-pointer w-full"
+                  >
+                    <UserCircle className="size-4" />
+                    <span>{t("myProfile")}</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
                     href={`/dashboard/settings`}
                     className="flex items-center gap-2 cursor-pointer w-full"
                   >
