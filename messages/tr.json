@@ -725,6 +725,8 @@
     "passwordsNotMatch": "Şifreler eşleşmiyor",
     "departmentNameMin": "Departman adı en az 2 karakter olmalıdır",
     "positionMin": "Pozisyon en az 2 karakter olmalıdır",
+    "invalidNationalId": "Geçersiz T.C. Kimlik No",
+    "invalidIban": "Geçersiz IBAN",
     "leaveTypeRequired": "İzin türü seçiniz",
     "startDateRequired": "Başlangıç tarihi seçiniz",
     "endDateRequired": "Bitiş tarihi seçiniz",

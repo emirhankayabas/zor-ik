@@ -19,7 +19,7 @@ model Company {
   id          String   @id @default(cuid())
   name        String
   domain      String?  @unique
-  emailDomain String?  // e.g. "@tilia.com.tr" - auto-appended in employee email
+  emailDomain String? // e.g. "@tilia.com.tr" - auto-appended in employee email
   timezone    String   @default("Europe/Istanbul")
   locale      String   @default("tr")
   country     String   @default("TR")
@@ -63,8 +63,8 @@ model User {
   sessions      Session[]
   employee      Employee?
   managedDepts  Department[]   @relation("DepartmentManager")
-  approvals             Approval[]
-  notifications         Notification[]
+  approvals     Approval[]
+  notifications Notification[]
 
   @@index([email])
   @@index([companyId])
@@ -146,6 +146,60 @@ model Department {
   @@map("departments")
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum BloodType {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum EducationLevel {
+  PRIMARY
+  SECONDARY
+  HIGH_SCHOOL
+  ASSOCIATE
+  BACHELOR
+  MASTER
+  DOCTORATE
+}
+
+enum MilitaryStatus {
+  DONE // Yapıldı
+  EXEMPT // Muaf
+  DEFERRED // Tecilli
+  PENDING // Yapılmadı
+  NOT_APPLICABLE // Kadın / ilgili değil
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  TEMPORARY
+  INTERN
+}
+
+enum ContractType {
+  PERMANENT // Belirsiz süreli
+  FIXED_TERM // Belirli süreli
+}
+
 model Employee {
   id           String   @id @default(cuid())
   userId       String   @unique
@@ -163,17 +217,55 @@ model Employee {
   annualLeaveQuota   Int   @default(0)
   totalLeftLeaveDays Float @default(0)
 
+  // --- Özlük: Kimlik ---
+  nationalId    String? // TC Kimlik No (11 hane)
+  birthDate     DateTime?
+  birthPlace    String?
+  gender        Gender?
+  maritalStatus MaritalStatus?
+  nationality   String?        @default("TC")
+  bloodType     BloodType?
+
+  // --- Özlük: İletişim ---
+  phone           String?
+  personalEmail   String?
+  addressCity     String?
+  addressDistrict String?
+  addressLine     String? @db.Text
+
+  // --- Özlük: Acil durum ---
+  emergencyName     String?
+  emergencyPhone    String?
+  emergencyRelation String?
+
+  // --- Özlük: Banka ---
+  iban String?
+
+  // --- Özlük: Eğitim & Askerlik ---
+  educationLevel EducationLevel?
+  militaryStatus MilitaryStatus?
+
+  // --- Özlük: İstihdam & Sözleşme ---
+  employmentType    EmploymentType? @default(FULL_TIME)
+  contractType      ContractType?   @default(PERMANENT)
+  contractStart     DateTime?
+  contractEnd       DateTime?
+  sgkRegistrationNo String? // SGK sicil no
+  terminationDate   DateTime?
+  terminationReason String?         @db.Text
+
   // Relations
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  shift         Shift?         @relation(fields: [shiftId], references: [id], onDelete: SetNull)
-  leaveRequests LeaveRequest[]
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department            Department?            @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  company               Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  shift                 Shift?                 @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  leaveRequests         LeaveRequest[]
   salary                Salary?
   payrolls              Payroll[]
   attendanceCorrections AttendanceCorrection[]
   attendanceLogs        AttendanceLog[]
 
+  @@unique([nationalId, companyId])
   @@index([userId])
   @@index([departmentId])
   @@index([companyId])
@@ -276,15 +368,15 @@ enum LeaveRequestStatus {
 }
 
 model Approval {
-  id             String         @id @default(cuid())
+  id                     String         @id @default(cuid())
   leaveRequestId         String?
   attendanceCorrectionId String?
   approverId             String
-  status         ApprovalStatus @default(PENDING)
-  comment        String?        @db.Text
-  approvalOrder  Int // 1 = Manager, 2 = HR
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  status                 ApprovalStatus @default(PENDING)
+  comment                String?        @db.Text
+  approvalOrder          Int // 1 = Manager, 2 = HR
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
   // Relations
   leaveRequest         LeaveRequest?         @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
@@ -366,15 +458,15 @@ enum CorrectionStatus {
 // ============================================
 
 model Shift {
-  id        String   @id @default(cuid())
-  name      String   // "Gündüz", "Gece", "Özel"
-  startTime String   // "08:30" (HH:mm)
-  endTime   String   // "17:30" (HH:mm)
-  breakMinutes Int   @default(60) // Lunch break in minutes
-  isDefault Boolean  @default(false)
-  companyId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String // "Gündüz", "Gece", "Özel"
+  startTime    String // "08:30" (HH:mm)
+  endTime      String // "17:30" (HH:mm)
+  breakMinutes Int      @default(60) // Lunch break in minutes
+  isDefault    Boolean  @default(false)
+  companyId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -386,19 +478,19 @@ model Shift {
 }
 
 model AttendanceLog {
-  id          String    @id @default(cuid())
-  employeeId  String
-  date        DateTime  @db.Date // The calendar date
-  checkIn     DateTime? // Actual check-in timestamp
-  checkOut    DateTime? // Actual check-out timestamp
-  lateMinutes   Int     @default(0) // Geç Giriş (minutes)
-  earlyMinutes  Int     @default(0) // Erken Çıkış (minutes)
-  overtimeMinutes Int   @default(0) // Fazla Mesai (minutes)
-  totalWorkMinutes Int  @default(0) // Net çalışma süresi
-  source      AttendanceSource @default(CARD) // How the log was created
-  companyId   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String           @id @default(cuid())
+  employeeId       String
+  date             DateTime         @db.Date // The calendar date
+  checkIn          DateTime? // Actual check-in timestamp
+  checkOut         DateTime? // Actual check-out timestamp
+  lateMinutes      Int              @default(0) // Geç Giriş (minutes)
+  earlyMinutes     Int              @default(0) // Erken Çıkış (minutes)
+  overtimeMinutes  Int              @default(0) // Fazla Mesai (minutes)
+  totalWorkMinutes Int              @default(0) // Net çalışma süresi
+  source           AttendanceSource @default(CARD) // How the log was created
+  companyId        String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   // Relations
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -412,8 +504,8 @@ model AttendanceLog {
 }
 
 enum AttendanceSource {
-  CARD       // RFID/Card reader
-  MANUAL     // Manual entry by admin
+  CARD // RFID/Card reader
+  MANUAL // Manual entry by admin
   CORRECTION // Created from approved correction request
 }
 
@@ -422,14 +514,14 @@ enum AttendanceSource {
 // ============================================
 
 model RolePermission {
-  id         String   @id @default(cuid())
-  role       UserRole
-  resource   String   // e.g. "salary", "reports", "settings", "employees", "pdks"
-  canView    Boolean  @default(false)
-  canEdit    Boolean  @default(false)
-  companyId  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  role      UserRole
+  resource  String // e.g. "salary", "reports", "settings", "employees", "pdks"
+  canView   Boolean  @default(false)
+  canEdit   Boolean  @default(false)
+  companyId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)

@@ -725,6 +725,8 @@
     "passwordsNotMatch": "Passwords do not match",
     "departmentNameMin": "Department name must be at least 2 characters",
     "positionMin": "Position must be at least 2 characters",
+    "invalidNationalId": "Invalid Turkish ID number",
+    "invalidIban": "Invalid IBAN",
     "leaveTypeRequired": "Please select a leave type",
     "startDateRequired": "Start date is required",
     "endDateRequired": "End date is required",
