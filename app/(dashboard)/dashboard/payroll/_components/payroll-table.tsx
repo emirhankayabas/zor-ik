@@ -18,9 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { PayrollRow } from "./use-payroll";
 
 interface Props {
-  payrollData: any[];
+  payrollData: PayrollRow[];
   isLoading: boolean;
   month: number;
   year: number;

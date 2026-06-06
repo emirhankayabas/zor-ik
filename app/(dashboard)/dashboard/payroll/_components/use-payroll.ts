@@ -16,6 +16,32 @@ export interface PayrollStats {
   totalTax: number;
 }
 
+/** /api/payroll dönüşündeki tek bordro satırı (UI şekli). */
+export interface PayrollRow {
+  id: string;
+  grossSalary: number;
+  netSalary: number;
+  sgkEmployee: number;
+  unemploymentEmployee: number;
+  incomeTax: number;
+  stampTax: number;
+  taxRate: number;
+  agi: number;
+  totalSalary: number;
+  employee?: {
+    user?: { name?: string | null; email?: string | null };
+  };
+}
+
+/** /api/employees/salaries dönüşündeki çalışan + maaş kaydı. */
+export interface SalaryEmployee {
+  id: string;
+  position?: string | null;
+  user: { name: string | null; email: string | null };
+  department?: { name: string } | null;
+  salary?: { baseSalary: number; currency?: string } | null;
+}
+
 /**
  * Bordro sayfasının tüm durum yönetimi ve veri çekme mantığını kapsar.
  * Sayfa ve alt bileşenler yalnızca dönen değerleri kullanır.
@@ -29,9 +55,9 @@ export function usePayroll() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUpdatingSalary, setIsUpdatingSalary] = useState(false);
-  const [payrollData, setPayrollData] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [payrollData, setPayrollData] = useState<PayrollRow[]>([]);
+  const [employees, setEmployees] = useState<SalaryEmployee[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<SalaryEmployee | null>(null);
   const [tempSalary, setTempSalary] = useState<string>(""); // Gross
   const [tempNetSalary, setTempNetSalary] = useState<string>(""); // Net
   const [stats, setStats] = useState<PayrollStats>({
@@ -66,8 +92,8 @@ export function usePayroll() {
       const data = await res.json();
       setPayrollData(data.payrolls);
       setStats(data.stats);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tCommon("errorOccurred"));
     } finally {
       setIsLoading(false);
     }
@@ -79,8 +105,8 @@ export function usePayroll() {
       if (!res.ok) throw new Error(tCommon("fetchError"));
       const data = await res.json();
       setEmployees(data);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tCommon("fetchError"));
     }
   };
 
@@ -113,7 +139,7 @@ export function usePayroll() {
   };
 
   /** Maaş düzenleme dialogunu açar ve seçilen çalışanın mevcut maaşını doldurur. */
-  const openSalaryDialog = (emp: any) => {
+  const openSalaryDialog = (emp: SalaryEmployee) => {
     setSelectedEmployee(emp);
     const gross = emp.salary?.baseSalary || 0;
     setTempSalary(gross > 0 ? gross.toString() : "");
@@ -147,8 +173,8 @@ export function usePayroll() {
       setSelectedEmployee(null);
       fetchEmployees();
       fetchPayrolls();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("updateError"));
     } finally {
       setIsUpdatingSalary(false);
     }
@@ -168,8 +194,8 @@ export function usePayroll() {
       const data = await res.json();
       toast.success(data.message);
       fetchPayrolls();
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("generateError"));
     } finally {
       setIsGenerating(false);
     }

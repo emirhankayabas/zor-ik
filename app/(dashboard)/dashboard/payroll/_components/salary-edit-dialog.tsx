@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { SalaryEmployee } from "./use-payroll";
 
 interface Props {
-  employee: any | null;
+  employee: SalaryEmployee | null;
   tempSalary: string;
   tempNetSalary: string;
   isSaving: boolean;
@@ -44,7 +45,7 @@ export function SalaryEditDialog({
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
           <DialogDescription>
-            {t("dialogDesc", { name: employee?.user.name })}
+            {t("dialogDesc", { name: employee?.user.name ?? "" })}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

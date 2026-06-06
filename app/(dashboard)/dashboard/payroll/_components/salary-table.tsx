@@ -18,10 +18,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { SalaryEmployee } from "./use-payroll";
 
 interface Props {
-  employees: any[];
-  onEdit: (employee: any) => void;
+  employees: SalaryEmployee[];
+  onEdit: (employee: SalaryEmployee) => void;
 }
 
 export function SalaryTable({ employees, onEdit }: Props) {
