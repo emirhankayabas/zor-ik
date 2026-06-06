@@ -60,3 +60,26 @@ multi-tenant companyId izolasyonu korunur.
 - Kıdem & ihbar tazminatı motoru
 - KVKK & denetim logu
 - İSG & eğitim takibi
+
+## Review — tamamlandı (branch: feature/employee-personal-info)
+
+**Faz 1 — Çalışan özlük verisi ✅**
+- Schema: Employee'ye 25 nullable özlük alanı + 7 enum; migration kaydı
+  (db push ile uygulandı, mevcut veri korundu, geçmişe işlendi).
+- Doğrulama: `lib/validators.ts` saf TC Kimlik checksum + TR IBAN mod-97;
+  `getPersonalInfoSchema` + `buildPersonalInfoData` (boş→null, tarih dönüşümü);
+  `pickOzlukData` (gösterim için). 10 birim test.
+- Form: paylaşılan `OzlukFields` (Accordion bölümleri, native-select + register,
+  inline-component yok); yeni + düzenleme formuna eklendi; API POST/PATCH
+  entegrasyonu, PATCH'te TC/IBAN/email doğrulaması.
+- Gösterim: `OzlukDisplay` paylaşılan bileşeni; yeni çalışan detay sayfası
+  `/dashboard/employees/[id]` (HR korumalı); profil sayfasında self-servis.
+
+**Faz 2 — Tasarım ✅**
+- Analitik dashboard: `getCompanyStats` (paralel sorgular) + `HrAnalytics`
+  (recharts: departman bar, işe giriş alan grafiği, izin durumu & çalışma şekli
+  donut'ları, 4 stat kartı) — yalnızca yöneticilere.
+- Organizasyon şeması: `/dashboard/org-chart` (departman→yönetici→üye).
+
+**Doğrulama:** `tsc --noEmit` temiz · `npm run build` exit 0 · `npm test` 39/39 ·
+`npm run lint` 0 error (5 kasıtlı exhaustive-deps uyarısı) · multi-tenant korundu.
