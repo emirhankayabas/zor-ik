@@ -66,6 +66,7 @@
     "noRecords": "Kayıt bulunamadı.",
     "actions": "İşlemler",
     "confirm": "Onayla",
+    "confirmTitle": "Emin misiniz?",
     "reject": "Reddet",
     "approve": "Onayla",
     "send": "Gönder",

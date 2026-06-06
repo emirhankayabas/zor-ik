@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ const ConfirmContext = createContext<ConfirmFn | null>(null);
  * `await confirm({ ... })` döndürür.
  */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>({});
   const resolverRef = useRef<((value: boolean) => void) | null>(null);
@@ -61,20 +63,20 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
       <AlertDialog open={open} onOpenChange={(next) => !next && settle(false)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{options.title ?? "Emin misiniz?"}</AlertDialogTitle>
+            <AlertDialogTitle>{options.title ?? tCommon("confirmTitle")}</AlertDialogTitle>
             {options.description && (
               <AlertDialogDescription>{options.description}</AlertDialogDescription>
             )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => settle(false)}>
-              {options.cancelText ?? "İptal"}
+              {options.cancelText ?? tCommon("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               variant={options.destructive ? "destructive" : "default"}
               onClick={() => settle(true)}
             >
-              {options.confirmText ?? "Onayla"}
+              {options.confirmText ?? tCommon("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
