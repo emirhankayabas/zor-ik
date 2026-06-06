@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { getCompanyId } from '@/lib/auth';
 import { getEmployeeSchema } from '@/lib/validations/employee';
 import { handleApiError } from '@/lib/api-response';
@@ -79,7 +80,7 @@ export async function PATCH(
         const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive, ...rest } = body;
 
         // Update in transaction
-        await prisma.$transaction(async (tx: any) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Update user record if user-related fields are provided
             if (name || email || role || password || isActive !== undefined) {
                 await tx.user.update({
@@ -95,7 +96,7 @@ export async function PATCH(
             }
 
             // Update employee record
-            const employeeUpdate: any = {};
+            const employeeUpdate: Prisma.EmployeeUncheckedUpdateInput = {};
             if (position !== undefined) employeeUpdate.position = position;
             if (departmentId !== undefined) employeeUpdate.departmentId = departmentId;
             if (shiftId !== undefined) employeeUpdate.shiftId = shiftId || null;

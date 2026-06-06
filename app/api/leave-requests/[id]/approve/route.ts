@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ApprovalStatus } from '@prisma/client';
 import { handleApiError } from '@/lib/api-response';
 
 // POST /api/leave-requests/[id]/approve - Approve leave request
@@ -71,7 +72,7 @@ export async function POST(
         await prisma.approval.update({
             where: { id: approval.id },
             data: {
-                status: action as any,
+                status: action as ApprovalStatus,
                 comment: comment || null,
             },
         });

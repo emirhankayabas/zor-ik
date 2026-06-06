@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { canManageCompany } from "@/lib/access";
 import { handleApiError } from "@/lib/api-response";
+import type { Session } from "next-auth";
 
-function canViewGlobalLogs(session: any) {
+function canViewGlobalLogs(session: Session | null) {
   return canManageCompany(session?.user);
 }
 
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     const departmentId = searchParams.get("departmentId");
 
-    const where: any = {
+    const where: Prisma.AttendanceLogWhereInput = {
       companyId: session.user.companyId,
     };
 
@@ -39,12 +41,10 @@ export async function GET(request: NextRequest) {
       where.employee = { departmentId };
     }
 
-    if (startDate) {
-      where.date = { ...where.date, gte: new Date(startDate) };
-    }
-    if (endDate) {
-      where.date = { ...where.date, lte: new Date(endDate) };
-    }
+    const dateFilter: Prisma.DateTimeFilter = {};
+    if (startDate) dateFilter.gte = new Date(startDate);
+    if (endDate) dateFilter.lte = new Date(endDate);
+    if (startDate || endDate) where.date = dateFilter;
 
     const logs = await prisma.attendanceLog.findMany({
       where,

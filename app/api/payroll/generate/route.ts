@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            const cumulativeMatrah = pastPayrolls.reduce((sum: number, p: any) => sum + p.incomeTaxMatrah, 0);
+            const cumulativeMatrah = pastPayrolls.reduce((sum: number, p) => sum + p.incomeTaxMatrah, 0);
 
             // Calculate payroll
             const payrollData = calculateNetFromGross(employee.salary.baseSalary, cumulativeMatrah);

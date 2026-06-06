@@ -68,16 +68,16 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.role = user.role;
                 token.companyId = user.companyId;
-                token.departmentName = (user as any).departmentName;
+                token.departmentName = user.departmentName;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                (session.user as any).id = token.id as string;
-                (session.user as any).role = token.role as string;
-                (session.user as any).companyId = token.companyId as string;
-                (session.user as any).departmentName = token.departmentName as string;
+                session.user.id = token.id;
+                session.user.role = token.role;
+                session.user.companyId = token.companyId;
+                session.user.departmentName = token.departmentName;
             }
             return session;
         },

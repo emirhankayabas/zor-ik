@@ -5,8 +5,9 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { canManageCompany } from "@/lib/access";
 import { handleApiError } from "@/lib/api-response";
+import type { Session } from "next-auth";
 
-function canManageShifts(session: any) {
+function canManageShifts(session: Session | null) {
   return canManageCompany(session?.user);
 }
 

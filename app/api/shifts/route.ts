@@ -6,8 +6,9 @@ import { getShiftSchema } from "@/lib/validations/employee";
 import { canManageCompany } from "@/lib/access";
 import { handleApiError } from "@/lib/api-response";
 import { getTranslations } from "next-intl/server";
+import type { Session } from "next-auth";
 
-function canManageShifts(session: any) {
+function canManageShifts(session: Session | null) {
   return canManageCompany(session?.user);
 }
 

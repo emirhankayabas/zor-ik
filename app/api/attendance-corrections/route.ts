@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isHrDepartmentName, HR_DEPARTMENT_NAMES } from '@/lib/access';
+import { Prisma } from '@prisma/client';
 import { handleApiError } from '@/lib/api-response';
 import { getAttendanceCorrectionSchema } from '@/lib/validations/employee';
 import { getTranslations } from 'next-intl/server';
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Create approval workflow: Employee -> Manager -> HR
-        const approvals = [];
+        const approvals: Prisma.ApprovalCreateManyInput[] = [];
 
         // Step 1: Manager approval (if employee has a manager)
         if (employee.department?.managerId && employee.department.managerId !== employee.userId) {
@@ -307,7 +308,7 @@ export async function POST(request: NextRequest) {
         // Create all approvals
         if (approvals.length > 0) {
             await prisma.approval.createMany({
-                data: approvals as any,
+                data: approvals,
             });
 
             // Notify Step 1 approver

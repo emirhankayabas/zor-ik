@@ -43,9 +43,10 @@ import { cn } from "@/lib/utils";
 import { isHrUser, canManageCompany } from "@/lib/access";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import type { Session } from "next-auth";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  session: any;
+  session: Session | null;
 }
 
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
