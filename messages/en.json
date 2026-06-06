@@ -175,6 +175,7 @@
     "payroll": "Payroll",
     "shifts": "Shifts",
     "pdksRecords": "Attendance Records",
+    "orgChart": "Org Chart",
     "myRequests": "My Requests",
     "calendar": "Calendar",
     "myLeaves": "My Leave Requests",
@@ -259,6 +260,19 @@
     "recentRequests": "Recent Requests",
     "daysCount": "{count} Days",
     "usageRateDetail": "{used} / {total} Days ( %{percent} )"
+  },
+  "orgChart": {
+    "title": "Org Chart",
+    "subtitle": "Hierarchical view of departments, managers and team members.",
+    "departmentCount": "{count} departments",
+    "employeeCount": "{count} employees",
+    "memberCount": "{count} members",
+    "manager": "Manager",
+    "noManager": "No manager assigned",
+    "members": "Team Members",
+    "noMembers": "No members yet",
+    "unassigned": "Unassigned Employees",
+    "unassignedDesc": "Employees not yet assigned to a department."
   },
   "employees": {
     "title": "Employee List",

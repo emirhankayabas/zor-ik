@@ -18,6 +18,7 @@ import {
   Clock,
   Shield,
   CalendarRange,
+  Network,
 } from "lucide-react";
 
 import {
@@ -77,6 +78,11 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           title: t("departments"),
           href: `/dashboard/departments`,
           icon: Building2,
+        },
+        {
+          title: t("orgChart"),
+          href: `/dashboard/org-chart`,
+          icon: Network,
         },
         {
           title: t("payroll"),

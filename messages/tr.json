@@ -175,6 +175,7 @@
     "payroll": "Bordrolar",
     "shifts": "Vardiyalar",
     "pdksRecords": "PDKS Kayıtları",
+    "orgChart": "Organizasyon Şeması",
     "myRequests": "Taleplerim",
     "calendar": "Takvim",
     "myLeaves": "İzin Taleplerim",
@@ -259,6 +260,19 @@
     "recentRequests": "Son Taleplerim",
     "daysCount": "{count} Gün",
     "usageRateDetail": "{used} / {total} Gün ( %{percent} )"
+  },
+  "orgChart": {
+    "title": "Organizasyon Şeması",
+    "subtitle": "Departmanlar, yöneticiler ve ekip üyelerinin hiyerarşik görünümü.",
+    "departmentCount": "{count} departman",
+    "employeeCount": "{count} çalışan",
+    "memberCount": "{count} üye",
+    "manager": "Yönetici",
+    "noManager": "Yönetici atanmamış",
+    "members": "Ekip Üyeleri",
+    "noMembers": "Henüz üye yok",
+    "unassigned": "Departmansız Çalışanlar",
+    "unassignedDesc": "Henüz bir departmana atanmamış çalışanlar."
   },
   "employees": {
     "title": "Çalışan Listesi",
