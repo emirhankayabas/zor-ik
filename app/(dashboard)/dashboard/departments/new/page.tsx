@@ -75,8 +75,8 @@ export default function NewDepartmentPage() {
         router.push(`/dashboard/departments`);
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("createError"));
     } finally {
       setIsLoading(false);
     }

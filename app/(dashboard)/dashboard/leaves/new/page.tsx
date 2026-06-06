@@ -73,7 +73,7 @@ export default function NewLeavePage() {
   const [leaveTypes, setLeaveTypes] = useState<{ id: string; name: string }[]>(
     [],
   );
-  const [employee, setEmployee] = useState<any>(null);
+  const [employee, setEmployee] = useState<{ totalLeftLeaveDays: number } | null>(null);
   const [isFetchingLeaveTypes, setIsFetchingLeaveTypes] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [pendingData, setPendingData] = useState<LeaveFormValues | null>(null);
@@ -142,8 +142,8 @@ export default function NewLeavePage() {
         router.push(`/dashboard/leaves`);
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -338,7 +338,7 @@ export default function NewLeavePage() {
             </div>
             <AlertDialogTitle>{t("insufficientBalance")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("insufficientBalanceDesc", { balance: employee?.totalLeftLeaveDays })}
+              {t("insufficientBalanceDesc", { balance: employee?.totalLeftLeaveDays ?? 0 })}
               <br /><br />
               <strong>{t("continueWithDebt")}</strong>
             </AlertDialogDescription>

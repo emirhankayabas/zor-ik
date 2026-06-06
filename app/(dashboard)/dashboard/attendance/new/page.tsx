@@ -109,8 +109,8 @@ export default function NewAttendanceCorrectionPage() {
                 router.push("/dashboard/attendance");
                 router.refresh();
             }, 1500);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Bir hata oluştu");
         } finally {
             setIsLoading(false);
         }
@@ -172,7 +172,7 @@ export default function NewAttendanceCorrectionPage() {
                                 <Label htmlFor="type">{t("correctionType")} *</Label>
                                 <Select
                                     defaultValue="BOTH"
-                                    onValueChange={(value) => setValue("type", value as any)}
+                                    onValueChange={(value) => setValue("type", value as "ENTRY" | "EXIT" | "BOTH")}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={t("selectType")} />

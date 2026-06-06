@@ -28,7 +28,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { EmployeeFilters } from "./_components/employee-filters";
-import { UserRole } from "@prisma/client";
+import { UserRole, Prisma } from "@prisma/client";
 
 export default async function EmployeesPage({
   searchParams,
@@ -57,7 +57,7 @@ export default async function EmployeesPage({
   const availableRoles = [UserRole.COMPANY_ADMIN, UserRole.MANAGER, UserRole.EMPLOYEE];
 
   // Build the where clause for filtering
-  const where: any = {
+  const where: Prisma.EmployeeWhereInput = {
     companyId: session.user.companyId,
   };
 
@@ -73,7 +73,7 @@ export default async function EmployeesPage({
   }
 
   if (role && role !== "all") {
-    where.user = { ...where.user, role: role as UserRole };
+    where.user = { role: role as UserRole };
   }
 
   const employees = await prisma.employee.findMany({
@@ -157,7 +157,7 @@ export default async function EmployeesPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {employees.map((employee: any) => (
+                {employees.map((employee) => (
                   <TableRow key={employee.id} className={!employee.user.isActive ? "opacity-50" : ""}>
                     <TableCell>
                       <div className="flex items-center gap-3">

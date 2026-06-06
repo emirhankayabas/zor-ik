@@ -63,6 +63,7 @@ interface LeaveRequest {
     id: string;
     status: string;
     approvalOrder: number;
+    approverId: string;
     comment: string | null;
     processedAt: string | null;
     approver: {
@@ -180,7 +181,7 @@ export default function LeaveDetailPage({
     const currentApproval = pendingApprovals[0];
 
     // Check if the current user is the approver for this step
-    return (currentApproval as any).approverId === session.user.id;
+    return currentApproval.approverId === session.user.id;
   };
 
   const getStatusBadge = (status: string) => {

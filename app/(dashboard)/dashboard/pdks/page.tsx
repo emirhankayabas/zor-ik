@@ -64,7 +64,7 @@ interface Department {
   name: string;
 }
 
-function formatMinutes(minutes: number, t: any): string {
+function formatMinutes(minutes: number, t: (key: string) => string): string {
   if (minutes === 0) return "-";
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
@@ -80,7 +80,7 @@ function formatTime(isoStr: string | null, locale: string): string {
   });
 }
 
-function getStatusBadge(log: AttendanceLog, t: any) {
+function getStatusBadge(log: AttendanceLog, t: (key: string) => string) {
   if (!log.checkIn) {
     return (
       <Badge variant="outline" className="text-[10px] text-muted-foreground">
