@@ -5,6 +5,7 @@ import { getCompanyId } from '@/lib/auth';
 import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import bcrypt from 'bcryptjs';
+import { getPersonalInfoSchema, buildPersonalInfoData } from '@/lib/validations/employee';
 
 export async function GET(
     request: NextRequest,
@@ -78,6 +79,11 @@ export async function PATCH(
 
         const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive } = body;
 
+        // Validate & extract özlük (personnel-file) fields (TC/IBAN/email checked).
+        const tValidation = await getTranslations('validation');
+        const personalInfo = getPersonalInfoSchema(tValidation).parse(body);
+        const personalData = buildPersonalInfoData(personalInfo);
+
         // Update in transaction
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Update user record if user-related fields are provided
@@ -95,7 +101,9 @@ export async function PATCH(
             }
 
             // Update employee record
-            const employeeUpdate: Prisma.EmployeeUncheckedUpdateInput = {};
+            const employeeUpdate: Prisma.EmployeeUncheckedUpdateInput = {
+                ...personalData,
+            };
             if (position !== undefined) employeeUpdate.position = position;
             if (departmentId !== undefined) employeeUpdate.departmentId = departmentId;
             if (shiftId !== undefined) employeeUpdate.shiftId = shiftId || null;

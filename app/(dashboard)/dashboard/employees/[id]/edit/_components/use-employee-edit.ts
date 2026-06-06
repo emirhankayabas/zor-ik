@@ -8,8 +8,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { apiUrl } from "@/lib/api";
-import { getEmployeeSchema } from "@/lib/validations/employee";
+import { getEmployeeSchema, PERSONAL_INFO_KEYS } from "@/lib/validations/employee";
 import type { DepartmentOption, ShiftOption } from "@/lib/types";
+
+const PERSONAL_DATE_KEYS = new Set([
+  "birthDate",
+  "contractStart",
+  "contractEnd",
+  "terminationDate",
+]);
+
+/** Maps an employee record's özlük fields to form-ready string values. */
+function personalInfoToFormValues(emp: Record<string, unknown>) {
+  const values: Record<string, string> = {};
+  for (const key of PERSONAL_INFO_KEYS) {
+    const raw = emp[key];
+    if (raw === null || raw === undefined) {
+      values[key] = "";
+    } else if (PERSONAL_DATE_KEYS.has(key)) {
+      values[key] = String(raw).slice(0, 10); // ISO → yyyy-mm-dd
+    } else {
+      values[key] = String(raw);
+    }
+  }
+  return values;
+}
 
 /** Çalışan düzenleme formunun verisini yükler ve kaydetme/silme işlemlerini yönetir. */
 export function useEmployeeEdit(id: string) {
@@ -65,6 +88,7 @@ export function useEmployeeEdit(id: string) {
             departmentId: empData.departmentId || "none",
             role: empData.user.role,
             password: "",
+            ...personalInfoToFormValues(empData),
           });
           setSelectedShiftId(empData.shiftId || "");
           setSelectedWorkingDays(empData.workingDays || [1, 2, 3, 4, 5]);
