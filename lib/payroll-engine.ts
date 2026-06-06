@@ -23,7 +23,6 @@ export interface PayrollResult {
 
 // 2026 Constants (User provided)
 const ASGARI_UCRET_BRUT = 33030.00;
-const ASGARI_UCRET_NET = 28075.50;
 const ASGARI_UCRET_MATRAH_ISTISNA = 28075.50; // Brüt - %15 Prim
 
 // SGK primine esas kazancın tavanı = 7.5 × brüt asgari ücret. Bu tutarın üstündeki

@@ -22,9 +22,13 @@ export function LanguageSelector() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // İlk mount'ta istemci tarafı dil tercihini okur (SSR/hydration güvenli).
+    // set-state-in-effect kuralı mount-guard pattern'inde kaçınılmazdır.
     const saved = localStorage.getItem("preferred-locale") || "tr";
+    /* eslint-disable react-hooks/set-state-in-effect */
     setLocale(saved);
     setMounted(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   const handleChange = (value: string) => {

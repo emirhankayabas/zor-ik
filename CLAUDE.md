@@ -16,9 +16,13 @@ npx prisma generate  # Regenerate Prisma client after schema changes
 npx prisma db push   # Push schema changes to DB (dev)
 npx prisma migrate dev --name <name>  # Create migration
 npm run db:seed      # Seed database (npx tsx prisma/seed.ts)
+npm test             # Run Vitest unit tests (vitest run)
+npm run test:watch   # Vitest in watch mode
 ```
 
-No test framework is currently configured.
+**Testing**: Vitest is configured for the pure domain engines. Tests live in `tests/`
+and cover `payroll-engine`, `leave-engine`, and `attendance-calc` (pure PDKS logic
+extracted from `pdks-engine` so it runs without a DB). DB-touching code is not unit-tested.
 
 ## Tech Stack
 

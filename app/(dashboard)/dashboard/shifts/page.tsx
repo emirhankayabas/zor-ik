@@ -155,7 +155,7 @@ export default function ShiftsPage() {
         const err = await response.json();
         toast.error(err.error || tCommon("errorOccurred"));
       }
-    } catch (error) {
+    } catch {
       toast.error(tCommon("errorOccurred"));
     } finally {
       setIsSubmitting(false);
@@ -175,7 +175,7 @@ export default function ShiftsPage() {
         const err = await response.json();
         toast.error(err.error || t("deleteError"));
       }
-    } catch (error) {
+    } catch {
       toast.error(tCommon("errorOccurred"));
     } finally {
       setIsDeleting(false);

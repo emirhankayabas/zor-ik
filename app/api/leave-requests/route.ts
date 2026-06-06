@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { getLeaveRequestSchema } from '@/lib/validations/employee';
 import { calculateLeaveDays } from '@/lib/leave-engine';
 import { isHrUser, HR_DEPARTMENT_NAMES } from '@/lib/access';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests - Get leave requests (filtered by role)
@@ -195,11 +197,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(leaveRequests);
     } catch (error) {
-        console.error('Error fetching leave requests:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch leave requests' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }
 
@@ -253,7 +251,7 @@ export async function POST(request: NextRequest) {
             startDate,
             endDate,
             employee.workingDays,
-            holidays as any
+            holidays
         );
 
         if (actualDays === 0) {
@@ -311,7 +309,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Create approval workflow: Employee -> Manager -> HR
-        const approvals = [];
+        const approvals: Prisma.ApprovalCreateManyInput[] = [];
 
         // Step 1: Manager approval (if employee has a manager)
         if (employee.department?.managerId && employee.department.managerId !== employee.userId) {
@@ -386,7 +384,7 @@ export async function POST(request: NextRequest) {
         // Create all approvals
         if (approvals.length > 0) {
             await prisma.approval.createMany({
-                data: approvals as any,
+                data: approvals,
             });
 
             // Notify Step 1 approver (usually the Manager)
@@ -417,11 +415,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(leaveRequest, { status: 201 });
-    } catch (error: any) {
-        console.error('Error creating leave request:', error);
-        return NextResponse.json(
-            { error: error.message || 'Failed to create leave request' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

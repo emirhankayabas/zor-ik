@@ -2,7 +2,6 @@
 import { apiUrl } from "@/lib/api";
 
 import * as React from "react";
-import { useSession } from "next-auth/react";
 import {
   format,
   startOfMonth,
@@ -61,12 +60,11 @@ export default function CalendarPage() {
     format(new Date(2024, 0, 6), "EEEEEE", { locale: dateLocale }),
     format(new Date(2024, 0, 7), "EEEEEE", { locale: dateLocale }),
   ];
-  const { data: session } = useSession();
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
   const [leaves, setLeaves] = React.useState<LeaveRequest[]>([]);
   const [holidays, setHolidays] = React.useState<Holiday[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [, setLoading] = React.useState(true);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);

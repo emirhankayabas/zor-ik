@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { handleApiError } from "@/lib/api-response";
 import { z } from "zod";
 
 const settingsSchema = z.object({
@@ -34,8 +36,8 @@ export async function GET() {
     });
 
     return NextResponse.json(company);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
@@ -53,7 +55,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const data = settingsSchema.parse(body);
 
-    const updateData: any = {};
+    const updateData: Prisma.CompanyUpdateInput = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.emailDomain !== undefined) updateData.emailDomain = data.emailDomain;
     if (data.timezone !== undefined) updateData.timezone = data.timezone;
@@ -66,7 +68,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json(company);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

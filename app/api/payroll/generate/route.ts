@@ -3,6 +3,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { calculateNetFromGross } from '@/lib/payroll-engine';
 import { isHrUser } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 
 // POST /api/payroll/generate - Generate payroll for all employees
 export async function POST(request: NextRequest) {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            const cumulativeMatrah = pastPayrolls.reduce((sum: number, p: any) => sum + p.incomeTaxMatrah, 0);
+            const cumulativeMatrah = pastPayrolls.reduce((sum: number, p) => sum + p.incomeTaxMatrah, 0);
 
             // Calculate payroll
             const payrollData = calculateNetFromGross(employee.salary.baseSalary, cumulativeMatrah);
@@ -116,11 +117,7 @@ export async function POST(request: NextRequest) {
             message: `${results.length} person için bordro başarıyla oluşturuldu.`,
             results,
         });
-    } catch (error: any) {
-        console.error('Bordro oluşturma hatası:', error);
-        return NextResponse.json(
-            { error: error.message || 'Bordro oluşturulamadı' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

@@ -3,12 +3,13 @@
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { apiUrl } from "@/lib/api";
 import { getEmployeeSchema } from "@/lib/validations/employee";
+import type { DepartmentOption, ShiftOption } from "@/lib/types";
 
 /** Çalışan düzenleme formunun verisini yükler ve kaydetme/silme işlemlerini yönetir. */
 export function useEmployeeEdit(id: string) {
@@ -20,8 +21,8 @@ export function useEmployeeEdit(id: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [shifts, setShifts] = useState<ShiftOption[]>([]);
   const [selectedWorkingDays, setSelectedWorkingDays] = useState<number[]>([
     1, 2, 3, 4, 5,
   ]);
@@ -89,17 +90,18 @@ export function useEmployeeEdit(id: string) {
     );
   };
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: FieldValues) => {
     setIsSaving(true);
     try {
-      const submitData = {
-        ...values,
+      const { password, ...restValues } = values;
+      const submitData: FieldValues = {
+        ...restValues,
         departmentId: values.departmentId === "none" ? null : values.departmentId,
         shiftId: selectedShiftId || null,
         workingDays: selectedWorkingDays,
       };
 
-      if (!submitData.password) delete submitData.password;
+      if (password) submitData.password = password;
 
       const response = await fetch(apiUrl(`/api/employees/${id}`), {
         method: "PATCH",
@@ -115,7 +117,7 @@ export function useEmployeeEdit(id: string) {
         const data = await response.json();
         toast.error(data.error || t("updateError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
@@ -139,7 +141,7 @@ export function useEmployeeEdit(id: string) {
         const data = await response.json();
         toast.error(data.error || t("deleteError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);

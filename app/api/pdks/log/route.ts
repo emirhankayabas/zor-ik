@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processCardSwipe } from "@/lib/pdks-engine";
+import { handleApiError } from "@/lib/api-response";
 import { z } from "zod";
 
 const pdksLogSchema = z.object({
@@ -57,24 +58,19 @@ export async function POST(request: NextRequest) {
       check_in: result.log.checkIn,
       check_out: result.log.checkOut,
     });
-  } catch (error: any) {
-    if (error.message === "CARD_NOT_FOUND") {
+  } catch (error) {
+    if (error instanceof Error && error.message === "CARD_NOT_FOUND") {
       return NextResponse.json(
         { error: "Card not registered in system" },
         { status: 404 },
       );
     }
-    if (error.message === "NO_SHIFT_ASSIGNED") {
+    if (error instanceof Error && error.message === "NO_SHIFT_ASSIGNED") {
       return NextResponse.json(
         { error: "Employee has no shift assigned" },
         { status: 422 },
       );
     }
-
-    console.error("PDKS log error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return handleApiError(error);
   }
 }

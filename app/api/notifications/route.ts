@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // GET /api/notifications - Get unread notifications for the current user
 export async function GET() {
@@ -24,10 +25,6 @@ export async function GET() {
 
         return NextResponse.json(notifications);
     } catch (error) {
-        console.error('Error fetching notifications:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch notifications' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }

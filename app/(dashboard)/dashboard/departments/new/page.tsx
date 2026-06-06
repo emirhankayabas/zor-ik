@@ -7,20 +7,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Building2,
   ArrowLeft,
   CheckCircle2,
   Loader2,
-  Layers,
   Building,
   Plus,
-  Search,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,8 +71,8 @@ export default function NewDepartmentPage() {
         router.push(`/dashboard/departments`);
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("createError"));
     } finally {
       setIsLoading(false);
     }

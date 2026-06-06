@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isHrDepartmentName, HR_DEPARTMENT_NAMES } from '@/lib/access';
+import { Prisma } from '@prisma/client';
+import { handleApiError } from '@/lib/api-response';
 import { getAttendanceCorrectionSchema } from '@/lib/validations/employee';
 import { getTranslations } from 'next-intl/server';
 
@@ -179,11 +181,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(requests);
     } catch (error) {
-        console.error('Error fetching correction requests:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch requests' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }
 
@@ -233,7 +231,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Create approval workflow: Employee -> Manager -> HR
-        const approvals = [];
+        const approvals: Prisma.ApprovalCreateManyInput[] = [];
 
         // Step 1: Manager approval (if employee has a manager)
         if (employee.department?.managerId && employee.department.managerId !== employee.userId) {
@@ -310,7 +308,7 @@ export async function POST(request: NextRequest) {
         // Create all approvals
         if (approvals.length > 0) {
             await prisma.approval.createMany({
-                data: approvals as any,
+                data: approvals,
             });
 
             // Notify Step 1 approver
@@ -329,11 +327,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(correctionRequest, { status: 201 });
-    } catch (error: any) {
-        console.error('Error creating correction request:', error);
-        return NextResponse.json(
-            { error: error.message || 'Failed to create request' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

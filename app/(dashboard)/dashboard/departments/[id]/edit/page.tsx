@@ -3,7 +3,7 @@ import { apiUrl } from "@/lib/api";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldValues } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getDepartmentSchema } from "@/lib/validations/employee";
 import { useTranslations } from "next-intl";
@@ -36,6 +36,16 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useConfirm } from "@/components/shared/confirm-dialog";
 
+interface ManagerOption {
+  id: string;
+  name: string | null;
+  role: string;
+}
+
+type EmployeeWithUser = {
+  user: { id: string; name: string | null; role: string };
+};
+
 export default function EditDepartmentPage({
   params,
 }: {
@@ -52,7 +62,7 @@ export default function EditDepartmentPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [managers, setManagers] = useState<any[]>([]);
+  const [managers, setManagers] = useState<ManagerOption[]>([]);
 
   const form = useForm({
     resolver: zodResolver(getDepartmentSchema(tv)),
@@ -68,11 +78,11 @@ export default function EditDepartmentPage({
         // Fetch potential managers (users)
         const usersRes = await fetch(apiUrl("/api/employees"));
         if (usersRes.ok) {
-          const employees = await usersRes.json();
+          const employees: EmployeeWithUser[] = await usersRes.json();
           // Map and filter employees by role for manager selection
           const managerList = employees
-            .filter((emp: any) => emp.user.role === 'COMPANY_ADMIN' || emp.user.role === 'MANAGER')
-            .map((emp: any) => ({
+            .filter((emp) => emp.user.role === 'COMPANY_ADMIN' || emp.user.role === 'MANAGER')
+            .map((emp) => ({
               id: emp.user.id,
               name: emp.user.name,
               role: emp.user.role,
@@ -103,7 +113,7 @@ export default function EditDepartmentPage({
     if (id) fetchData();
   }, [id, locale, router, form]);
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = async (values: FieldValues) => {
     setIsSaving(true);
     try {
       const submitData = {
@@ -125,7 +135,7 @@ export default function EditDepartmentPage({
         const data = await response.json();
         toast.error(data.error || t("updateError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
@@ -155,7 +165,7 @@ export default function EditDepartmentPage({
           data.error || t("deleteError")
         );
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);
@@ -225,7 +235,7 @@ export default function EditDepartmentPage({
                 <FormField
                   control={form.control}
                   name="name"
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <FormItem className="space-y-2">
                       <FormLabel>{t("nameLabel")}</FormLabel>
                       <FormControl>
@@ -239,7 +249,7 @@ export default function EditDepartmentPage({
                 <FormField
                   control={form.control}
                   name="managerId"
-                  render={({ field }: { field: any }) => (
+                  render={({ field }) => (
                     <FormItem className="space-y-2">
                       <FormLabel>{t("managerSelect")}</FormLabel>
                       <Select

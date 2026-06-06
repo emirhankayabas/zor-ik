@@ -43,9 +43,10 @@ import { cn } from "@/lib/utils";
 import { isHrUser, canManageCompany } from "@/lib/access";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import type { Session } from "next-auth";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  session: any;
+  session: Session | null;
 }
 
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
@@ -191,7 +192,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-2">
-        {menuGroups.map((group, idx) => {
+        {menuGroups.map((group) => {
           if (group.hide || group.items.length === 0) return null;
           return (
             <SidebarGroup key={group.label}>
@@ -265,6 +266,15 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                 align="end"
                 sideOffset={4}
               >
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/dashboard/profile`}
+                    className="flex items-center gap-2 cursor-pointer w-full"
+                  >
+                    <UserCircle className="size-4" />
+                    <span>{t("myProfile")}</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
                     href={`/dashboard/settings`}

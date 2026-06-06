@@ -50,10 +50,16 @@ düşmek şeklindedir; yüksek maaşlılarda fark oluşur. SGK tavanı düzeltil
 (7.5× asgari ücret). İstisna yöntemi mali müşavir teyidiyle netleştirilmeli;
 ayrıca kümülatif matrah istisna-öncesi/sonrası tutarlılığı gözden geçirilmeli.
 
-## 5. Test altyapısı (yok)
-Hiç test yok. Kritik saf mantık (payroll-engine, leave-engine, pdks-engine) için
-Vitest + birim testleri eklenmeli — refactor güvenliği için en yüksek değerli yatırım.
+## 5. Test altyapısı ✅ YAPILDI
+Vitest kuruldu (`npm test`). `tests/` altında payroll-engine, leave-engine ve
+attendance-calc (pdks-engine'den ayrılan saf mantık) için 29 birim test.
+DB'ye dokunan kod (Prisma çağrıları) birim test kapsamında değil.
 
-## 6. confirm akışı i18n
-`components/shared/confirm-dialog.tsx` varsayılan buton metinleri Türkçe sabit
-("İptal"/"Onayla"). next-intl ile çevrilebilir hale getirilebilir.
+## 6. confirm akışı i18n ✅ YAPILDI
+`confirm-dialog.tsx` varsayılanları common namespace anahtarlarına bağlandı.
+
+## 7. Onay bildirimi i18n (mimari karar gerektirir)
+Approve route'larındaki bildirim başlık/mesajları sabit Türkçe. Basit
+`getTranslations()` çözümü yanlış olur: bildirim üretildiği an işlemi yapanın
+diline çevrilir ama alıcı farklı dilde olabilir. Doğru yaklaşım: Notification
+modelinde mesaj key + JSON param saklayıp bildirim **render anında** çevirmek.

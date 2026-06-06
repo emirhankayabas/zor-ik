@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { handleApiError } from "@/lib/api-response";
 import { z } from "zod";
 
 const permissionSchema = z.object({
@@ -37,8 +38,8 @@ export async function GET() {
     });
 
     return NextResponse.json(permissions);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(permission);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

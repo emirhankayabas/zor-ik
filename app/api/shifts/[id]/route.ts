@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { canManageCompany } from "@/lib/access";
+import { handleApiError } from "@/lib/api-response";
+import type { Session } from "next-auth";
 
-function canManageShifts(session: any) {
+function canManageShifts(session: Session | null) {
   return canManageCompany(session?.user);
 }
 
@@ -53,14 +56,14 @@ export async function PUT(
     });
 
     return NextResponse.json(shift);
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
         { error: "Bu isimde bir vardiya zaten mevcut" },
         { status: 409 },
       );
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -95,7 +98,7 @@ export async function DELETE(
     await prisma.shift.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

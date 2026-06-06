@@ -3,10 +3,11 @@ import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
 import { getEmployeeSchema } from '@/lib/validations/employee';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import { calculateSeniorityQuota } from '@/lib/leave-engine';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const companyId = await getCompanyId();
 
@@ -36,13 +37,8 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(employees);
-    } catch (error: any) {
-        console.error('Get employees error:', error);
-        const tEmployees = await getTranslations('employees');
-        return NextResponse.json(
-            { error: tEmployees('fetchError') || 'Çalışanlar alınırken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -123,20 +119,7 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(result, { status: 201 });
-    } catch (error: any) {
-        console.error('Create employee error:', error);
-
-        const tEmployeesCatch = await getTranslations('employees');
-        if (error.name === 'ZodError') {
-            return NextResponse.json(
-                { error: tEmployeesCatch('invalidData') || 'Geçersiz form verileri' },
-                { status: 400 }
-            );
-        }
-
-        return NextResponse.json(
-            { error: tEmployeesCatch('createError') || 'Çalışan eklenirken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

@@ -4,7 +4,6 @@ import { apiUrl } from "@/lib/api";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   getStatusStyle,
@@ -23,13 +22,11 @@ import {
   ArrowRight,
   Info,
   ChevronDown,
-  Loader2,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -79,7 +76,6 @@ interface LeaveRequest {
 }
 
 export default function LeavesPage() {
-  const { data: session } = useSession();
   const t = useTranslations("leaves");
   const confirm = useConfirm();
   const tCommon = useTranslations("common");
@@ -89,7 +85,7 @@ export default function LeavesPage() {
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeaveRequests();
@@ -289,7 +285,7 @@ export default function LeavesPage() {
                         <div>
                           <CardDescription>{t("reason")}</CardDescription>
                           <CardDescription className="text-foreground mt-1">
-                            "{request.reason}"
+                            &quot;{request.reason}&quot;
                           </CardDescription>
                         </div>
                       </div>

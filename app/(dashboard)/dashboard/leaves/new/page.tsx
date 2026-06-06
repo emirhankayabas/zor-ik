@@ -7,15 +7,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Building2,
   Calendar,
   ArrowLeft,
   CheckCircle2,
   Loader2,
   Layers,
   Clock,
-  AlignLeft,
-  Search,
   Send,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -23,12 +20,10 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -53,7 +48,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 
 import { getLeaveRequestSchema } from "@/lib/validations/employee";
 import { useTranslations } from "next-intl";
@@ -73,7 +67,7 @@ export default function NewLeavePage() {
   const [leaveTypes, setLeaveTypes] = useState<{ id: string; name: string }[]>(
     [],
   );
-  const [employee, setEmployee] = useState<any>(null);
+  const [employee, setEmployee] = useState<{ totalLeftLeaveDays: number } | null>(null);
   const [isFetchingLeaveTypes, setIsFetchingLeaveTypes] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [pendingData, setPendingData] = useState<LeaveFormValues | null>(null);
@@ -142,8 +136,8 @@ export default function NewLeavePage() {
         router.push(`/dashboard/leaves`);
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
       setIsLoading(false);
     }
@@ -338,7 +332,7 @@ export default function NewLeavePage() {
             </div>
             <AlertDialogTitle>{t("insufficientBalance")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("insufficientBalanceDesc", { balance: employee?.totalLeftLeaveDays })}
+              {t("insufficientBalanceDesc", { balance: employee?.totalLeftLeaveDays ?? 0 })}
               <br /><br />
               <strong>{t("continueWithDebt")}</strong>
             </AlertDialogDescription>

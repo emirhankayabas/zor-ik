@@ -23,11 +23,7 @@ import { Mail, Lock, User, Building, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import ErrorMessage from "@/components/shared/error-message";
 
-interface Props {
-  locale?: string;
-}
-
-export default function RegisterForm({ locale }: Props) {
+export default function RegisterForm() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
   const tValidation = useTranslations("validation");
@@ -64,7 +60,7 @@ export default function RegisterForm({ locale }: Props) {
       }
 
       router.push(`/login?registered=true`);
-    } catch (err) {
+    } catch {
       setError(t("genericError"));
     } finally {
       setIsLoading(false);

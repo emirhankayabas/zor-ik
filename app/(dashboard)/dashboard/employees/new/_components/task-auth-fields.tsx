@@ -23,10 +23,11 @@ import { DatePicker } from "@/components/ui/date-picker";
 import ErrorMessage from "@/components/shared/error-message";
 import { toLocalDateString } from "@/lib/status-helpers";
 import type { EmployeeFormValues } from "./use-new-employee";
+import type { DepartmentOption } from "@/lib/types";
 
 interface Props {
   form: UseFormReturn<EmployeeFormValues>;
-  departments: any[];
+  departments: DepartmentOption[];
   selectedWorkingDays: number[];
   toggleWorkingDay: (day: number) => void;
 }
@@ -111,7 +112,7 @@ export function TaskAuthFields({
             </span>
             <Select
               defaultValue="EMPLOYEE"
-              onValueChange={(val: any) => setValue("role", val)}
+              onValueChange={(val) => setValue("role", val as EmployeeFormValues["role"])}
             >
               <SelectTrigger className="pl-8">
                 <SelectValue placeholder={t("selectRole")} />

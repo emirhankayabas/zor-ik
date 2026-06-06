@@ -5,7 +5,6 @@ import { Building2, Users, User, MoreVertical, ArrowRight } from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -75,7 +74,7 @@ export default function DepartmentList({ departments }: Props) {
         const result = await response.json();
         toast.error(result.error || t("deleteError"));
       }
-    } catch (error) {
+    } catch {
       toast.error(tCommon("errorOccurred"));
     } finally {
       setIsDeleting(false);

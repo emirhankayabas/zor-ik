@@ -3,6 +3,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { getLeaveRequestSchema } from '@/lib/validations/employee';
 import { canManageCompany } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests/[id] - Get a single leave request
@@ -62,8 +63,8 @@ export async function GET(
         }
 
         return NextResponse.json(leaveRequest);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -112,8 +113,8 @@ export async function PATCH(
         });
 
         return NextResponse.json(updated);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -152,7 +153,7 @@ export async function DELETE(
         });
 
         return NextResponse.json({ message: 'Deleted successfully' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return handleApiError(error);
     }
 }

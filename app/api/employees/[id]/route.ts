@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { getCompanyId } from '@/lib/auth';
-import { getEmployeeSchema } from '@/lib/validations/employee';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import bcrypt from 'bcryptjs';
 
@@ -51,13 +52,8 @@ export async function GET(
         }
 
         return NextResponse.json(employee);
-    } catch (error: any) {
-        console.error('Get employee error:', error);
-        const tEmployees = await getTranslations('employees');
-        return NextResponse.json(
-            { error: tEmployees('fetchErrorDetail') || 'Çalışan bilgileri alınırken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -80,10 +76,10 @@ export async function PATCH(
             return NextResponse.json({ error: tEmployees('notFound') || 'Çalışan bulunamadı' }, { status: 404 });
         }
 
-        const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive, ...rest } = body;
+        const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive } = body;
 
         // Update in transaction
-        await prisma.$transaction(async (tx: any) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Update user record if user-related fields are provided
             if (name || email || role || password || isActive !== undefined) {
                 await tx.user.update({
@@ -99,7 +95,7 @@ export async function PATCH(
             }
 
             // Update employee record
-            const employeeUpdate: any = {};
+            const employeeUpdate: Prisma.EmployeeUncheckedUpdateInput = {};
             if (position !== undefined) employeeUpdate.position = position;
             if (departmentId !== undefined) employeeUpdate.departmentId = departmentId;
             if (shiftId !== undefined) employeeUpdate.shiftId = shiftId || null;
@@ -115,13 +111,8 @@ export async function PATCH(
 
         const tEmployees = await getTranslations('employees');
         return NextResponse.json({ message: tEmployees('updateSuccess') || 'Çalışan başarıyla güncellendi' });
-    } catch (error: any) {
-        console.error('Update employee error:', error);
-        const tEmployees = await getTranslations('employees');
-        return NextResponse.json(
-            { error: tEmployees('updateError') || 'Çalışan güncellenirken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -149,12 +140,7 @@ export async function DELETE(
 
         const tEmployees = await getTranslations('employees');
         return NextResponse.json({ message: tEmployees('deleteSuccess') || 'Çalışan başarıyla silindi' });
-    } catch (error: any) {
-        console.error('Delete employee error:', error);
-        const tEmployees = await getTranslations('employees');
-        return NextResponse.json(
-            { error: tEmployees('deleteError') || 'Çalışan silinirken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

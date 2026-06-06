@@ -4,7 +4,6 @@ import { apiUrl } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import {
   Shield,
-  Loader2,
   Eye,
   Pencil,
 } from "lucide-react";
@@ -16,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,

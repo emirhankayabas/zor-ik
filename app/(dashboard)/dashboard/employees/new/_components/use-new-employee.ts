@@ -9,6 +9,7 @@ import * as z from "zod";
 import { apiUrl } from "@/lib/api";
 import { toLocalDateString } from "@/lib/status-helpers";
 import { getEmployeeSchema } from "@/lib/validations/employee";
+import type { DepartmentOption } from "@/lib/types";
 
 export type EmployeeFormValues = z.infer<ReturnType<typeof getEmployeeSchema>>;
 
@@ -19,7 +20,7 @@ export function useNewEmployee() {
   const tValidation = useTranslations("validation");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [emailDomain, setEmailDomain] = useState<string | null>(null);
@@ -87,8 +88,8 @@ export function useNewEmployee() {
         router.push(`/dashboard/employees`);
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("addError"));
     } finally {
       setIsLoading(false);
     }

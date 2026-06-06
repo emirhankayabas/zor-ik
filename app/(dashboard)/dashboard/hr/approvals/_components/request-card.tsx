@@ -38,7 +38,6 @@ interface Props {
 }
 
 export function RequestCard({ request, isProcessing, onAction }: Props) {
-  const t = useTranslations("hr");
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const locale = useLocale();
@@ -122,7 +121,7 @@ export function RequestCard({ request, isProcessing, onAction }: Props) {
                 <div>
                   <CardDescription>{tCommon("reason")}</CardDescription>
                   <CardDescription className="text-foreground mt-1">
-                    "{request.reason}"
+                    &quot;{request.reason}&quot;
                   </CardDescription>
                 </div>
               </div>

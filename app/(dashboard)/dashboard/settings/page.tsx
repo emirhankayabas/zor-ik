@@ -7,17 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ModeToggle } from "@/components/layout/mode-toggle";
-import { Separator } from "@/components/ui/separator";
-import { User, Shield, Bell, Palette, Languages, Building, Mail } from "lucide-react";
-import Link from "next/link";
+import { User, Shield, Bell, Palette, Mail } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { LanguageSelector } from "@/components/layout/language-selector";
 import { getTranslations } from "next-intl/server";
 
-export default async function SettingsPage({
-}: {
-}) {
+export default async function SettingsPage() {
   const session = await getServerAuthSession();
 
   if (!session) return null;

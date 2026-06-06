@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { handleApiError } from "@/lib/api-response";
 
 // GET /api/holidays - List holidays for a company with optional date range filter
 export async function GET(request: NextRequest) {
@@ -14,16 +16,14 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    const where: any = {
+    const where: Prisma.HolidayWhereInput = {
       companyId: session.user.companyId,
     };
 
-    if (startDate) {
-      where.date = { ...where.date, gte: new Date(startDate) };
-    }
-    if (endDate) {
-      where.date = { ...where.date, lte: new Date(endDate) };
-    }
+    const dateFilter: Prisma.DateTimeFilter = {};
+    if (startDate) dateFilter.gte = new Date(startDate);
+    if (endDate) dateFilter.lte = new Date(endDate);
+    if (startDate || endDate) where.date = dateFilter;
 
     const holidays = await prisma.holiday.findMany({
       where,
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(holidays);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

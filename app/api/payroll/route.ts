@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // GET /api/payroll?month=2&year=2025 - Fetch payrolls
 export async function GET(request: NextRequest) {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Month and year are required' }, { status: 400 });
         }
 
-        const rawPayrolls = await (prisma as any).payroll.findMany({
+        const rawPayrolls = await prisma.payroll.findMany({
             where: {
                 month,
                 year,
@@ -40,30 +41,29 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        const payrolls = rawPayrolls.map((p: any) => ({
+        const payrolls = rawPayrolls.map((p) => ({
             ...p,
-            unemploymentEmployee: p.unemployment, // Map DB field to UI/Engine field
-            agi: p.agi || 0,
-            totalSalary: p.totalSalary || p.netSalary,
+            unemploymentEmployee: p.unemployment, // DB alanını UI/engine alanına eşle
+            agi: 0, // DB'de tutulmuyor; UI sözleşmesi için sabit
+            totalSalary: p.netSalary, // DB'de ayrı tutulmuyor; net ile aynı
         }));
 
         // Calculate stats
-        const stats = payrolls.reduce((acc: any, p: any) => ({
-            totalGross: acc.totalGross + p.grossSalary,
-            totalNet: acc.totalNet + p.netSalary,
-            totalSgk: acc.totalSgk + p.sgkEmployee + p.unemploymentEmployee,
-            totalTax: acc.totalTax + p.incomeTax + p.stampTax,
-        }), { totalGross: 0, totalNet: 0, totalSgk: 0, totalTax: 0 });
+        const stats = payrolls.reduce(
+            (acc, p) => ({
+                totalGross: acc.totalGross + p.grossSalary,
+                totalNet: acc.totalNet + p.netSalary,
+                totalSgk: acc.totalSgk + p.sgkEmployee + p.unemploymentEmployee,
+                totalTax: acc.totalTax + p.incomeTax + p.stampTax,
+            }),
+            { totalGross: 0, totalNet: 0, totalSgk: 0, totalTax: 0 },
+        );
 
         return NextResponse.json({
             payrolls,
             stats
         });
-    } catch (error: any) {
-        console.error('Bordro getirme hatası:', error);
-        return NextResponse.json(
-            { error: error.message || 'Bordrolar getirilemedi' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

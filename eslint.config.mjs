@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Claude skill templates — not project source, must not pollute lint.
+    ".agent/**",
   ]),
 ]);
 

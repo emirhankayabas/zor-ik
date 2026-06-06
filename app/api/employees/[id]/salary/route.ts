@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isHrUser } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 
 // PATCH /api/employees/[id]/salary - Set or update employee salary
 export async function PATCH(
@@ -38,11 +39,7 @@ export async function PATCH(
         });
 
         return NextResponse.json(updatedSalary);
-    } catch (error: any) {
-        console.error('Salary update error:', error);
-        return NextResponse.json(
-            { error: error.message || 'Could not update salary' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

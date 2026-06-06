@@ -28,7 +28,7 @@ export default async function DepartmentDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { locale, id } = await params;
+  const { id } = await params;
   const t = await getTranslations("departments");
   const tc = await getTranslations("common");
   const session = await getServerAuthSession();
@@ -54,6 +54,7 @@ export default async function DepartmentDetailPage({
         include: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
             },
@@ -184,7 +185,7 @@ export default async function DepartmentDetailPage({
                 </div>
               ) : (
                 <div className="divide-y divide-border">
-                  {department.employees.map((employee: any) => (
+                  {department.employees.map((employee) => (
                     <div
                       key={employee.id}
                       className="p-4 flex items-center justify-between hover:bg-muted/5 transition-colors group"

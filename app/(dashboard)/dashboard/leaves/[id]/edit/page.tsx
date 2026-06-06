@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-    Calendar,
     ArrowLeft,
     CheckCircle2,
     Loader2,
@@ -15,7 +14,6 @@ import {
     Clock,
     Send,
 } from "lucide-react";
-import { toast } from "sonner";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
     Card,
@@ -25,7 +23,6 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -141,8 +138,8 @@ export default function EditLeavePage({
                 router.push(`/dashboard/leaves`);
                 router.refresh();
             }, 1500);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Bir hata oluştu");
         } finally {
             setIsLoading(false);
         }

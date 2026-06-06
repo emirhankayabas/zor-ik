@@ -18,9 +18,10 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import type { ShiftOption } from "@/lib/types";
 
 interface Props {
-  shifts: any[];
+  shifts: ShiftOption[];
   selectedShiftId: string;
   setSelectedShiftId: (id: string) => void;
   selectedWorkingDays: number[];

@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
 import { getDepartmentSchema } from '@/lib/validations/employee';
 import { isHrDepartmentName } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
 export async function GET(
@@ -38,13 +39,8 @@ export async function GET(
         }
 
         return NextResponse.json(department);
-    } catch (error: any) {
-        console.error('Get department error:', error);
-        const tDepartments = await getTranslations('departments');
-        return NextResponse.json(
-            { error: tDepartments('fetchErrorDetail') || 'Departman bilgileri alınırken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -72,13 +68,8 @@ export async function PATCH(
         });
 
         return NextResponse.json(department);
-    } catch (error: any) {
-        console.error('Update department error:', error);
-        const tDepartments = await getTranslations('departments');
-        return NextResponse.json(
-            { error: tDepartments('updateError') || 'Departman güncellenirken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -113,12 +104,7 @@ export async function DELETE(
 
         const tDepartments = await getTranslations('departments');
         return NextResponse.json({ message: tDepartments('deleteSuccess') || 'Departman başarıyla silindi' });
-    } catch (error: any) {
-        console.error('Delete department error:', error);
-        const tDepartments = await getTranslations('departments');
-        return NextResponse.json(
-            { error: tDepartments('deleteError') || 'Departman silinirken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

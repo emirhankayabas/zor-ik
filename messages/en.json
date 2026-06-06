@@ -66,6 +66,7 @@
     "noRecords": "No records found.",
     "actions": "Actions",
     "confirm": "Confirm",
+    "confirmTitle": "Are you sure?",
     "reject": "Reject",
     "approve": "Approve",
     "send": "Send",

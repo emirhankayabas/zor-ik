@@ -1,14 +1,10 @@
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
-  Users,
-  Building2,
   CalendarDays,
-  ArrowUpRight,
   ArrowDownRight,
   History,
   Flag,
-  Plus,
 } from "lucide-react";
 import {
   Card,
@@ -27,9 +23,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { tr, enUS } from "date-fns/locale";
 import { formatDateLocale } from "@/lib/status-helpers";
 
-export default async function DashboardPage({
-}: {
-}) {
+export default async function DashboardPage() {
   const session = await getServerAuthSession();
 
   if (!session) return null;

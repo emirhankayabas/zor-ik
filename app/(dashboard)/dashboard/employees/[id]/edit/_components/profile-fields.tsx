@@ -1,6 +1,6 @@
 "use client";
 
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, FieldValues } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { UserCircle } from "lucide-react";
 import {
@@ -26,10 +26,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import type { DepartmentOption } from "@/lib/types";
 
 interface Props {
-  form: UseFormReturn<any>;
-  departments: any[];
+  form: UseFormReturn<FieldValues>;
+  departments: DepartmentOption[];
 }
 
 export function ProfileFields({ form, departments }: Props) {
