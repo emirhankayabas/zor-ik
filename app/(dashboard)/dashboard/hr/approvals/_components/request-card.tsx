@@ -38,7 +38,6 @@ interface Props {
 }
 
 export function RequestCard({ request, isProcessing, onAction }: Props) {
-  const t = useTranslations("hr");
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const locale = useLocale();

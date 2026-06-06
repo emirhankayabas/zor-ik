@@ -63,7 +63,6 @@ export function RequestCard({
   setRejectComment,
   onAction,
 }: Props) {
-  const t = useTranslations("leaveApprovals");
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("status");
   const locale = useLocale();

@@ -8,8 +8,6 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  CheckCircle2,
-  XCircle,
   User,
   Building2,
   FileText,

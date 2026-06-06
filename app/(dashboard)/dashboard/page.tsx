@@ -1,14 +1,10 @@
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
-  Users,
-  Building2,
   CalendarDays,
-  ArrowUpRight,
   ArrowDownRight,
   History,
   Flag,
-  Plus,
 } from "lucide-react";
 import {
   Card,

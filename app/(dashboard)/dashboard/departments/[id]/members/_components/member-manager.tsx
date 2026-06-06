@@ -42,7 +42,6 @@ interface Props {
 export default function MemberManager({
   department,
   allEmployees,
-  locale,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("departments");
@@ -76,7 +75,7 @@ export default function MemberManager({
       } else {
         toast.error(tCommon("errorOccurred"));
       }
-    } catch (error) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsLoading(null);

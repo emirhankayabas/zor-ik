@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
     }
 
     const tValidation = await getTranslations("validation");
-    const tShifts = await getTranslations("shifts");
     const body = await request.json();
     const data = getShiftSchema(tValidation).parse(body);
 

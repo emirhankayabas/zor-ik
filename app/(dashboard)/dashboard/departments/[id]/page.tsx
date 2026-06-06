@@ -28,7 +28,7 @@ export default async function DepartmentDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { locale, id } = await params;
+  const { id } = await params;
   const t = await getTranslations("departments");
   const tc = await getTranslations("common");
   const session = await getServerAuthSession();

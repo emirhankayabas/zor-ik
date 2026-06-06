@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { getCompanyId } from '@/lib/auth';
-import { getEmployeeSchema } from '@/lib/validations/employee';
 import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import bcrypt from 'bcryptjs';
@@ -77,7 +76,7 @@ export async function PATCH(
             return NextResponse.json({ error: tEmployees('notFound') || 'Çalışan bulunamadı' }, { status: 404 });
         }
 
-        const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive, ...rest } = body;
+        const { password, name, email, role, position, departmentId, shiftId, workingDays, isActive } = body;
 
         // Update in transaction
         await prisma.$transaction(async (tx: Prisma.TransactionClient) => {

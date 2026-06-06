@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isHrUser } from '@/lib/access';
 import { handleApiError } from '@/lib/api-response';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const session = await getServerAuthSession();
 

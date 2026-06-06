@@ -1,6 +1,6 @@
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Users, ArrowLeft, Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 import {
   Card,
   CardContent,

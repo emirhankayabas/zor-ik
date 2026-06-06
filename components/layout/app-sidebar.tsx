@@ -192,7 +192,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-2">
-        {menuGroups.map((group, idx) => {
+        {menuGroups.map((group) => {
           if (group.hide || group.items.length === 0) return null;
           return (
             <SidebarGroup key={group.label}>

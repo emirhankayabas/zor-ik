@@ -117,7 +117,7 @@ export function useEmployeeEdit(id: string) {
         const data = await response.json();
         toast.error(data.error || t("updateError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
@@ -141,7 +141,7 @@ export function useEmployeeEdit(id: string) {
         const data = await response.json();
         toast.error(data.error || t("deleteError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);

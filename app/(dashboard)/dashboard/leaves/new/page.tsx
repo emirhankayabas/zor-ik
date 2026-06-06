@@ -7,15 +7,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Building2,
   Calendar,
   ArrowLeft,
   CheckCircle2,
   Loader2,
   Layers,
   Clock,
-  AlignLeft,
-  Search,
   Send,
 } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -23,12 +20,10 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -53,7 +48,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 
 import { getLeaveRequestSchema } from "@/lib/validations/employee";
 import { useTranslations } from "next-intl";

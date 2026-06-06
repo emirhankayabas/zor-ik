@@ -135,7 +135,7 @@ export default function EditDepartmentPage({
         const data = await response.json();
         toast.error(data.error || t("updateError"));
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsSaving(false);
@@ -165,7 +165,7 @@ export default function EditDepartmentPage({
           data.error || t("deleteError")
         );
       }
-    } catch (err) {
+    } catch {
       toast.error(tCommon("connectionError"));
     } finally {
       setIsDeleting(false);

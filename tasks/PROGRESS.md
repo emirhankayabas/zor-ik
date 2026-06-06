@@ -24,11 +24,14 @@ Branch: `refactor/cleanup-and-componentization` (main'e PR bekliyor)
     - eslint.config.mjs: .agent/** ignore (vendor skill template'leri lint dışı)
     - Gizli bug fix: departments/[id] yönetici rozeti (user.id seçilmiyordu)
 
-## ŞU AN SIRADA (task #9 — lint uyarıları)
-- ~67 no-unused-vars uyarısı (çoğu kullanılmayan import) → temizle
-- 2 set-state-in-effect hatası: employee-filters.tsx:54, language-selector.tsx:26
-  (meşru hydration/URL-sync pattern'leri; ya yeniden yapılandır ya da gerekçeli bırak)
-- Hedef: `npm run lint` exit 0
+## Lint temizliği (task #9) — BİTTİ
+- `npm run lint` exit 0 (önce 65 any-error + 15 diğer error + 72 uyarı)
+- Tüm error'lar giderildi: no-unescaped-entities, no-empty-object-type,
+  set-state-in-effect (gerekçeli disable)
+- Uyarılar 72 → 5: kullanılmayan import/değişken/catch binding temizlendi,
+  ölü locale prop threading (login/register) kaldırıldı
+- Kalan 5 uyarı: react-hooks/exhaustive-deps (effect'lere `t` eklemek gereksiz
+  refetch riski; bilinçli bırakıldı)
 
 ## Sıradaki kuyruk (tasks/backlog.md)
 - Test altyapısı (Vitest — engine'ler için)

@@ -5,7 +5,7 @@ import { getDepartmentSchema } from '@/lib/validations/employee';
 import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const companyId = await getCompanyId();
 

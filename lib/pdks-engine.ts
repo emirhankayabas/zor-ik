@@ -33,7 +33,6 @@ export function calculateAttendanceMetrics(
 ) {
   const shiftStart = timeToMinutes(shift.startTime);
   const shiftEnd = timeToMinutes(shift.endTime);
-  const shiftDuration = shiftEnd - shiftStart - shift.breakMinutes;
 
   const actualIn = dateToMinutes(checkInTime);
 

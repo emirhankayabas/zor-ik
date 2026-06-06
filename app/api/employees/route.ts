@@ -7,7 +7,7 @@ import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import { calculateSeniorityQuota } from '@/lib/leave-engine';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const companyId = await getCompanyId();
 
