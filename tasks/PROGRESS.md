@@ -33,10 +33,20 @@ Branch: `refactor/cleanup-and-componentization` (main'e PR bekliyor)
 - Kalan 5 uyarı: react-hooks/exhaustive-deps (effect'lere `t` eklemek gereksiz
   refetch riski; bilinçli bırakıldı)
 
-## Sıradaki kuyruk (tasks/backlog.md)
-- Test altyapısı (Vitest — engine'ler için)
-- Dashboard grafikleri/analitik
-- Asgari ücret istisna yöntemi muhasebeci teyidi (backlog 4c)
-- Onay bildirimlerinde hardcoded TR stringleri i18n'e taşı
+## Test altyapısı (backlog #5) — BİTTİ
+- Vitest kuruldu: `npm test`, vitest.config.ts, tests/ (29 test, hepsi geçiyor)
+- lib/attendance-calc.ts: PDKS saf mantık ayrıldı (DB'siz test edilebilir)
+- payroll/leave/attendance-calc motorları test kapsamında
 
-## Doğrulama komutu: `npx tsc --noEmit` temiz, `npm run build` exit 0.
+## confirm dialog i18n (backlog #6) — BİTTİ
+
+## Kalan (yön/karar gerektiren — bu turda kapsam dışı)
+- Sayfa componentleştirme FAZ 2 devamı (~9 büyük sayfa) — backlog #3
+- Dashboard analitik/grafikler (recharts kurulu) — yeni özellik
+- Asgari ücret istisna yöntemi — mali müşavir teyidi gerek (backlog #4c)
+- Onay bildirimi i18n — DİKKAT: bildirim üretildiği an işlemi yapanın diline
+  göre çevrilir ama alıcı farklı dilde olabilir. Doğru çözüm: mesaj key+param
+  saklayıp render anında çevirmek (ayrı mimari iş, yarım yapılmamalı).
+
+## Doğrulama: `npx tsc --noEmit` temiz, `npm run build` exit 0, `npm test` 29/29,
+## `npm run lint` 0 error (5 kasıtlı exhaustive-deps uyarısı).
