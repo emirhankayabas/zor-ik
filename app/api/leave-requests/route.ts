@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getLeaveRequestSchema } from '@/lib/validations/employee';
 import { calculateLeaveDays } from '@/lib/leave-engine';
 import { isHrUser, HR_DEPARTMENT_NAMES } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
 // GET /api/leave-requests - Get leave requests (filtered by role)
@@ -195,11 +196,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(leaveRequests);
     } catch (error) {
-        console.error('Error fetching leave requests:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch leave requests' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }
 
@@ -417,11 +414,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(leaveRequest, { status: 201 });
-    } catch (error: any) {
-        console.error('Error creating leave request:', error);
-        return NextResponse.json(
-            { error: error.message || 'Failed to create leave request' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

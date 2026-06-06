@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // POST /api/leave-requests/[id]/approve - Approve leave request
 export async function POST(
@@ -165,10 +166,6 @@ export async function POST(
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('Error processing approval:', error);
-        return NextResponse.json(
-            { error: 'Failed to process approval' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }

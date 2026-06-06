@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { canManageCompany } from "@/lib/access";
+import { handleApiError } from "@/lib/api-response";
 
 function canViewGlobalLogs(session: any) {
   return canManageCompany(session?.user);
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(logs);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

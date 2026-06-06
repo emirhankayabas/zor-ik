@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { isHrUser } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 
 export async function GET(request: NextRequest) {
     try {
@@ -37,11 +38,7 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(employees);
-    } catch (error: any) {
-        console.error('Employee salary fetch error:', error);
-        return NextResponse.json(
-            { error: error.message || 'Could not fetch employee salaries' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

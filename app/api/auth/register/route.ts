@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { getRegisterSchema } from '@/lib/validations/auth';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import { UserRole } from '@prisma/client';
 
@@ -75,20 +76,7 @@ export async function POST(request: NextRequest) {
             },
             { status: 201 }
         );
-    } catch (error: any) {
-        console.error('Registration error:', error);
-
-        const tAuthCatch = await getTranslations('auth');
-        if (error.name === 'ZodError') {
-            return NextResponse.json(
-                { error: tAuthCatch('invalidData') || 'Geçersiz form verileri' },
-                { status: 400 }
-            );
-        }
-
-        return NextResponse.json(
-            { error: tAuthCatch('registerError') || 'Kayıt sırasında bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

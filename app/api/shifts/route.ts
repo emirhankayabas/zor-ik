@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getShiftSchema } from "@/lib/validations/employee";
 import { canManageCompany } from "@/lib/access";
+import { handleApiError } from "@/lib/api-response";
 import { getTranslations } from "next-intl/server";
 
 function canManageShifts(session: any) {
@@ -27,8 +29,8 @@ export async function GET() {
     });
 
     return NextResponse.json(shifts);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
 
@@ -61,14 +63,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(shift, { status: 201 });
-  } catch (error: any) {
-    if (error.code === "P2002") {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       const tShifts = await getTranslations("shifts");
       return NextResponse.json(
         { error: tShifts("alreadyExists") || "Bu isimde bir vardiya zaten mevcut" },
         { status: 409 },
       );
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleApiError(error);
   }
 }

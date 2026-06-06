@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // PATCH /api/notifications/[id] - Mark notification as read
 export async function PATCH(
@@ -28,10 +29,6 @@ export async function PATCH(
 
         return NextResponse.json(notification);
     } catch (error) {
-        console.error('Error updating notification:', error);
-        return NextResponse.json(
-            { error: 'Failed to update notification' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }

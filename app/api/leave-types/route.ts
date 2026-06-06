@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // GET /api/leave-types - Get all leave types
 export async function GET() {
@@ -19,10 +20,6 @@ export async function GET() {
 
         return NextResponse.json(leaveTypes);
     } catch (error) {
-        console.error('Error fetching leave types:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch leave types' },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }

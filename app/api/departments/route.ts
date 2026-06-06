@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
 import { getDepartmentSchema } from '@/lib/validations/employee';
+import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 
 export async function GET(request: NextRequest) {
@@ -32,13 +33,8 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(departments);
-    } catch (error: any) {
-        console.error('Get departments error:', error);
-        const tDepartments = await getTranslations('departments');
-        return NextResponse.json(
-            { error: tDepartments('fetchError') || 'Departmanlar alınırken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -69,20 +65,7 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(department, { status: 201 });
-    } catch (error: any) {
-        console.error('Create department error:', error);
-
-        const tDepartmentsCatch = await getTranslations('departments');
-        if (error.name === 'ZodError') {
-            return NextResponse.json(
-                { error: tDepartmentsCatch('invalidData') || 'Geçersiz form verileri' },
-                { status: 400 }
-            );
-        }
-
-        return NextResponse.json(
-            { error: tDepartmentsCatch('createError') || 'Departman oluşturulurken bir hata oluştu' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }

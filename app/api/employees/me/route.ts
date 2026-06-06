@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { handleApiError } from "@/lib/api-response";
 
 export async function GET() {
     try {
@@ -23,10 +24,6 @@ export async function GET() {
 
         return NextResponse.json(employee);
     } catch (error) {
-        console.error("Error fetching me:", error);
-        return NextResponse.json(
-            { error: "Internal Server Error" },
-            { status: 500 }
-        );
+        return handleApiError(error);
     }
 }

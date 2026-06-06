@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { canManageCompany } from '@/lib/access';
+import { handleApiError } from '@/lib/api-response';
 
 // GET /api/attendance-corrections/[id] - Get a single attendance correction request
 export async function GET(
@@ -59,8 +60,8 @@ export async function GET(
         }
 
         return NextResponse.json(correction);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return handleApiError(error);
     }
 }
 
@@ -102,7 +103,7 @@ export async function DELETE(
         });
 
         return NextResponse.json({ message: 'İşlem başarıyla iptal edildi.' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        return handleApiError(error);
     }
 }

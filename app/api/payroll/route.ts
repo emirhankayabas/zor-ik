@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError } from '@/lib/api-response';
 
 // GET /api/payroll?month=2&year=2025 - Fetch payrolls
 export async function GET(request: NextRequest) {
@@ -59,11 +60,7 @@ export async function GET(request: NextRequest) {
             payrolls,
             stats
         });
-    } catch (error: any) {
-        console.error('Bordro getirme hatası:', error);
-        return NextResponse.json(
-            { error: error.message || 'Bordrolar getirilemedi' },
-            { status: 500 }
-        );
+    } catch (error) {
+        return handleApiError(error);
     }
 }
