@@ -12,9 +12,7 @@ import Link from "next/link";
 import DepartmentList from "./_components/department-list";
 import { getTranslations } from "next-intl/server";
 
-export default async function DepartmentsPage({
-}: {
-}) {
+export default async function DepartmentsPage() {
   const t = await getTranslations("departments");
   const session = await getServerAuthSession();
 

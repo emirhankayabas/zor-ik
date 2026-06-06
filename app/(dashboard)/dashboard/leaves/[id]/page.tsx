@@ -317,7 +317,7 @@ export default function LeaveDetailPage({
 
               <div className="space-y-1">
                 <CardDescription>{t("reason")}</CardDescription>
-                <p className="">"{request.reason}"</p>
+                <p className="">&quot;{request.reason}&quot;</p>
               </div>
             </CardContent>
           </Card>

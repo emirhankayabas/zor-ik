@@ -15,9 +15,7 @@ import { Input } from "@/components/ui/input";
 import { LanguageSelector } from "@/components/layout/language-selector";
 import { getTranslations } from "next-intl/server";
 
-export default async function SettingsPage({
-}: {
-}) {
+export default async function SettingsPage() {
   const session = await getServerAuthSession();
 
   if (!session) return null;

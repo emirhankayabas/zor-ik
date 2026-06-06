@@ -12,20 +12,28 @@ Branch: `refactor/cleanup-and-componentization` (main'e PR bekliyor)
 6. API yetki kontrolleri lib/access.ts ile merkezileştirildi
 7. Bordro (payslip) sayfası: /dashboard/payroll/[id]
 8. Tüm sayfalara metadata/title
+9. **Self-servis profil sayfası** (/dashboard/profile) + sidebar linki — BİTTİ, build OK
+10. **API hata yönetimi standardizasyonu** (lib/api-response.ts):
+    - 27 route'un tamamı handleApiError() kullanıyor
+    - getCompanyId Unauthorized→401, ZodError→400, error.message sızıntısı kapatıldı,
+      Prisma P2002→409 / P2025→404
+11. **Type hardening — explicit any 65 → 0**:
+    - lib/types.ts (DepartmentOption/ShiftOption), use-payroll tipleri
+    - NextAuth augmentation kullanıldı, Prisma.*WhereInput/UncheckedUpdateInput,
+      Session tipleri, ApprovalStatus enum
+    - eslint.config.mjs: .agent/** ignore (vendor skill template'leri lint dışı)
+    - Gizli bug fix: departments/[id] yönetici rozeti (user.id seçilmiyordu)
 
-## ŞU AN YARIM (task #7 — self-servis profil)
-- `app/(dashboard)/dashboard/profile/page.tsx` YAZILDI (server component, hazır).
-- `messages/tr.json` + `en.json`'a `profile` namespace + `sidebar.myProfile` eklendi.
-- **EKSİK**: app-sidebar.tsx'e profil linki eklenmedi. Yapılacak:
-  - myRequests grubuna `{ title: t("myProfile"), href: "/dashboard/profile", icon: UserCircle }`
-  - VEYA footer dropdown'a Settings'ten önce profil linki.
-- **EKSİK**: `npm run build` ile doğrulama yapılmadı (commit'lendi ama build edilmedi).
+## ŞU AN SIRADA (task #9 — lint uyarıları)
+- ~67 no-unused-vars uyarısı (çoğu kullanılmayan import) → temizle
+- 2 set-state-in-effect hatası: employee-filters.tsx:54, language-selector.tsx:26
+  (meşru hydration/URL-sync pattern'leri; ya yeniden yapılandır ya da gerekçeli bırak)
+- Hedef: `npm run lint` exit 0
 
-## Sıradaki kuyruk (tasks/backlog.md + TaskList)
-- #7 profil sayfasını bitir (sidebar linki + build doğrula)
-- #6 API hata yönetimi + Zod doğrulama standardizasyonu
-- #8 Type hardening (any azalt, ~181 lint hatası)
-- Ayrıca: test altyapısı (Vitest), dashboard grafikleri, asgari ücret istisna
-  yöntemi muhasebeci teyidi (backlog 4c)
+## Sıradaki kuyruk (tasks/backlog.md)
+- Test altyapısı (Vitest — engine'ler için)
+- Dashboard grafikleri/analitik
+- Asgari ücret istisna yöntemi muhasebeci teyidi (backlog 4c)
+- Onay bildirimlerinde hardcoded TR stringleri i18n'e taşı
 
-## İlk iş: dönünce `npm run build` çalıştır, profil sayfası hatasızsa sidebar linkini ekle.
+## Doğrulama komutu: `npx tsc --noEmit` temiz, `npm run build` exit 0.

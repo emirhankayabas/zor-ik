@@ -49,11 +49,14 @@ export function EmployeeFilters({ departments, roles }: EmployeeFiltersProps) {
         [searchParams]
     );
 
-    // Initial sync with searchParams
+    // URL (searchParams) dış kaynağıyla senkronizasyon — ör. geri/ileri navigasyonu.
+    // set-state-in-effect: dış sistemle senkron bilinçli; kural devre dışı.
     useEffect(() => {
+        /* eslint-disable react-hooks/set-state-in-effect */
         setSearch(searchParams.get("q") || "");
         setDepartmentId(searchParams.get("dept") || "all");
         setRole(searchParams.get("role") || "all");
+        /* eslint-enable react-hooks/set-state-in-effect */
     }, [searchParams]);
 
     // Debounced search update

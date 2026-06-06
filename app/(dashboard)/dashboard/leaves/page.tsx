@@ -289,7 +289,7 @@ export default function LeavesPage() {
                         <div>
                           <CardDescription>{t("reason")}</CardDescription>
                           <CardDescription className="text-foreground mt-1">
-                            "{request.reason}"
+                            &quot;{request.reason}&quot;
                           </CardDescription>
                         </div>
                       </div>

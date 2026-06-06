@@ -122,7 +122,7 @@ export function RequestCard({ request, isProcessing, onAction }: Props) {
                 <div>
                   <CardDescription>{tCommon("reason")}</CardDescription>
                   <CardDescription className="text-foreground mt-1">
-                    "{request.reason}"
+                    &quot;{request.reason}&quot;
                   </CardDescription>
                 </div>
               </div>

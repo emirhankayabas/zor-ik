@@ -27,9 +27,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { tr, enUS } from "date-fns/locale";
 import { formatDateLocale } from "@/lib/status-helpers";
 
-export default async function DashboardPage({
-}: {
-}) {
+export default async function DashboardPage() {
   const session = await getServerAuthSession();
 
   if (!session) return null;

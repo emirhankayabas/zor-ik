@@ -267,7 +267,7 @@ export default function AttendancePage() {
                         <div>
                           <CardDescription>{tCommon("reason")}</CardDescription>
                           <CardDescription className="text-foreground mt-1 text-sm">
-                            "{request.reason}"
+                            &quot;{request.reason}&quot;
                           </CardDescription>
                         </div>
                       </div>
