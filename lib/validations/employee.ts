@@ -192,6 +192,28 @@ export function buildPersonalInfoData(
   return data;
 }
 
+/**
+ * Picks özlük fields from an employee record into a serializable object for
+ * read-only display (Date → ISO string, missing → null). Safe to pass from
+ * server components to client display components.
+ */
+export function pickOzlukData(
+  emp: Record<string, unknown>,
+): Record<string, string | null> {
+  const data: Record<string, string | null> = {};
+  for (const key of PERSONAL_INFO_KEYS) {
+    const raw = emp[key];
+    if (raw === null || raw === undefined) {
+      data[key] = null;
+    } else if (raw instanceof Date) {
+      data[key] = raw.toISOString();
+    } else {
+      data[key] = String(raw);
+    }
+  }
+  return data;
+}
+
 // Leave Request validation
 export const getLeaveRequestSchema = (t: (key: string) => string) =>
   z.object({
