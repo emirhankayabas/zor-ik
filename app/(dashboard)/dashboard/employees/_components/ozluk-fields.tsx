@@ -1,6 +1,6 @@
 "use client";
 
-import type { UseFormReturn, FieldValues, Path } from "react-hook-form";
+import { Controller, type UseFormReturn, type FieldValues, type Path } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import {
   IdCard,
@@ -19,7 +19,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { NativeSelect } from "@/components/ui/native-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ErrorMessage from "@/components/shared/error-message";
 import {
   GENDER_VALUES,
@@ -37,8 +43,8 @@ interface Props<T extends FieldValues> {
 
 /**
  * Çalışan özlük (personnel-file) alanları — yeni ve düzenleme formlarında
- * paylaşılır. FieldValues üzerinden gevşek tiplenir; native-select + register
- * kullanır, böylece FormProvider gerektirmez.
+ * paylaşılır. Metin alanları register, select'ler shadcn Select + Controller
+ * kullanır (control prop'u explicit geçilir, FormProvider gerektirmez).
  *
  * Not: alt alanlar JSX bileşeni olarak DEĞİL, düz fonksiyon olarak üretilir
  * (inline component remount → input focus kaybı sorununu önlemek için).
@@ -95,18 +101,27 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
     return (
       <div key={field} className="space-y-2">
         <Label htmlFor={field}>{t(`ozluk.${field}`)}</Label>
-        <NativeSelect
-          id={field}
-          className="w-full"
-          {...register(fieldName(field))}
-        >
-          <option value="">{t("ozluk.selectPlaceholder")}</option>
-          {values.map((v) => (
-            <option key={v} value={v}>
-              {t(`ozluk.${optionsKey}.${v}`)}
-            </option>
-          ))}
-        </NativeSelect>
+        <Controller
+          control={form.control}
+          name={fieldName(field)}
+          render={({ field: f }) => (
+            <Select
+              value={(f.value as string) || ""}
+              onValueChange={f.onChange}
+            >
+              <SelectTrigger id={field} className="w-full">
+                <SelectValue placeholder={t("ozluk.selectPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {values.map((v) => (
+                  <SelectItem key={v} value={v}>
+                    {t(`ozluk.${optionsKey}.${v}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
         {err && <ErrorMessage>{err}</ErrorMessage>}
       </div>
     );
