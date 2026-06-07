@@ -4,6 +4,7 @@ import "./globals.css";
 import { RootProvider } from "@/components/providers/root-provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +31,7 @@ export default async function RootLayout({ children }: Props) {
         <NextIntlClientProvider messages={messages}>
           <RootProvider>{children}</RootProvider>
         </NextIntlClientProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
