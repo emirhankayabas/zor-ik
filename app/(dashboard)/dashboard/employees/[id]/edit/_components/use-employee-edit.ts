@@ -134,7 +134,7 @@ export function useEmployeeEdit(id: string) {
       });
 
       if (response.ok) {
-        toast.success(t("updatedSuccess"));
+        toast.success(t("updateSuccess"));
         router.push("/dashboard/employees");
         router.refresh();
       } else {
@@ -158,7 +158,7 @@ export function useEmployeeEdit(id: string) {
       });
 
       if (response.ok) {
-        toast.success(t("deletedSuccess"));
+        toast.success(t("deleteSuccess"));
         router.push("/dashboard/employees");
         router.refresh();
       } else {

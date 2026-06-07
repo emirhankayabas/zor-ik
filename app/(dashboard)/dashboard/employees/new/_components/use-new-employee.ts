@@ -80,7 +80,7 @@ export function useNewEmployee() {
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || t("addError"));
+        throw new Error(result.error || t("createError"));
       }
 
       setSuccess(true);
@@ -89,7 +89,7 @@ export function useNewEmployee() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("addError"));
+      setError(err instanceof Error ? err.message : t("createError"));
     } finally {
       setIsLoading(false);
     }

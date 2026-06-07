@@ -315,6 +315,8 @@
     "updateError": "Çalışan güncellenirken bir hata oluştu",
     "deleteSuccess": "Çalışan başarıyla silindi",
     "deleteError": "Çalışan silinirken bir hata oluştu",
+    "dataLoadError": "Veriler yüklenirken bir hata oluştu",
+    "deleteConfirm": "Bu çalışanı silmek istediğinize emin misiniz?",
     "editTitle": "Kullanıcı Düzenle",
     "editSubtitle": "Çalışan bilgilerini, vardiyasını ve sistem yetkilerini güncelleyin.",
     "deleteEmployee": "Çalışanı Sil",
@@ -525,6 +527,7 @@
   },
   "departments": {
     "title": "Departman Yapısı",
+    "dataLoadError": "Veriler yüklenirken bir hata oluştu",
     "subtitle": "Organizasyonel birimler ve hiyerarşik yönetim paneli.",
     "createNew": "Yeni Departman Oluştur",
     "emptyDesc": "Şirket yapınızı oluşturmak için ilk departmanı şimdi ekleyin.",
@@ -692,6 +695,7 @@
   },
   "shifts": {
     "title": "Vardiya Yönetimi",
+    "deleteError": "Vardiya silinirken bir hata oluştu",
     "subtitle": "Çalışanlara atanacak mesai saatlerini tanımlayın.",
     "newShift": "Yeni Vardiya",
     "editShift": "Vardiyayı Düzenle",
@@ -721,6 +725,8 @@
   },
   "pdks": {
     "title": "PDKS Kayıtları",
+    "hours": "sa",
+    "minutes": "dk",
     "subtitle": "Personel devam kontrol sistemi — giriş/çıkış kayıtları ve analiz.",
     "totalRecords": "Toplam Kayıt",
     "shownPeriod": "Gösterilen dönem",
@@ -746,6 +752,7 @@
   },
   "permissions": {
     "title": "Yetki Yönetimi",
+    "loadError": "İzinler yüklenirken bir hata oluştu",
     "subtitle": "Her rolün hangi modülleri görebileceğini ve düzenleyebileceğini belirleyin.",
     "permissions": "Yetkileri",
     "rolePermissions": "{role} Yetkileri",
