@@ -73,6 +73,11 @@ export function EmployeeActionsMenu({ employeeId, isActive }: EmployeeActionsMen
         <DropdownMenuLabel>İşlemler</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
+          <Link href={`/dashboard/employees/${employeeId}`}>
+            Detay
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href={`/dashboard/employees/${employeeId}/edit`}>
             Düzenle
           </Link>

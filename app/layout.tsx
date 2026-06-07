@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   description:
     "Türk iş hukukuna uygun çok kiracılı İK platformu: çalışan, izin, bordro, PDKS ve onay yönetimi.",
   applicationName: "Zor İK",
+  icons: { icon: "/logo-mark.png", shortcut: "/logo-mark.png", apple: "/logo-mark.png" },
 };
 
 interface Props {

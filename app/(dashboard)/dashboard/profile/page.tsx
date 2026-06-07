@@ -29,6 +29,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OzlukDisplay } from "@/components/shared/ozluk-display";
+import { pickOzlukData } from "@/lib/validations/employee";
 
 export const metadata: Metadata = { title: "Profilim" };
 
@@ -127,6 +129,9 @@ export default async function ProfilePage() {
           <Info icon={<UserCircle className="size-4" />} label={t("role")} value={roleLabel} />
         </CardContent>
       </Card>
+
+      {/* Özlük bilgileri (varsa) */}
+      <OzlukDisplay data={pickOzlukData(employee)} locale={locale} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* İzin bakiyesi */}

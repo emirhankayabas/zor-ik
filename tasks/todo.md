@@ -1,80 +1,85 @@
-# Refactor: Dosya Yapısı & Componentleştirme
+# TODO — Veri & Uyum hattı (Faz 1) + Tasarım
 
-Plan: `~/.claude/plans/cached-brewing-glacier.md`
+Karar: "Veri & Uyum" hattında ilerliyoruz. Belge/depolama (ücretli) şimdilik
+kapsam dışı. Bu turda: **Faz 1 özlük verisi** + **tasarımsal iyileştirmeler**.
 
-## FAZ 1 — Yapısal temizlik (davranış değişmez) ✅
+## Faz 1 — Çalışan özlük verisi
 
-### 1a. Ölü root dosyaları ✅
-- [x] `auth.ts` sil
-- [x] `auth.config.ts` sil
-- [x] `proxy.ts` sil
-- [x] `git` (boş dosya) sil
+### 1.1 Schema (prisma/schema.prisma)
+- [ ] Yeni enum'lar: Gender, MaritalStatus, BloodType, EducationLevel,
+      MilitaryStatus, EmploymentType, ContractType
+- [ ] Employee modeline alanlar (hepsi nullable — mevcut satırlar bozulmaz):
+  - Kimlik: nationalId (TC), birthDate, birthPlace, gender, maritalStatus,
+    nationality (default "TC"), bloodType
+  - İletişim: phone, personalEmail, addressCity, addressDistrict, addressLine
+  - Acil durum: emergencyName, emergencyPhone, emergencyRelation
+  - Banka: iban
+  - Eğitim/askerlik: educationLevel, militaryStatus
+  - İstihdam: employmentType, contractType, contractStart, contractEnd,
+    sgkRegistrationNo, terminationDate, terminationReason
+  - nationalId için @@unique([nationalId, companyId])
+- [ ] `npx prisma generate`
+- [ ] Migration (kullanıcı onayıyla `prisma migrate dev` veya `db push`)
 
-### 1b. Auth'u doğru yere taşı ✅
-- [x] `lib/auth-options.ts` oluştur (authOptions taşı)
-- [x] `app/api/auth/[...nextauth]/route.ts` incelt
-- [x] `lib/auth.ts` importu güncelle
+### 1.2 Doğrulama (lib/validations + test)
+- [ ] lib/validations/employee.ts: özlük alanları için Zod şeması
+- [ ] TC Kimlik No algoritma doğrulaması (11 hane + checksum)
+- [ ] TR IBAN doğrulaması (mod-97 checksum)
+- [ ] tests/: TC + IBAN validatör birim testleri
 
-### 1c. components/ grupla ✅
-- [x] `components/layout/` ← app-sidebar, dynamic-breadcrumb, notification-bell, mode-toggle, language-selector
-- [x] `components/shared/` ← error-message
-- [x] Tüm import yollarını güncelle
+### 1.3 UI — form
+- [ ] employees/new ve employees/[id]/edit formlarına gruplu bölümler
+      (Tabs veya Accordion): Kimlik / İletişim / Acil durum / Banka /
+      Eğitim-Askerlik / İstihdam-Sözleşme
+- [ ] API route'ları (employees POST/PATCH) yeni alanları kabul etsin + validate
 
-### 1d. Route _components standardize ✅
-- [x] login/register/home Content → _components/*-form|content
-- [x] departments DepartmentList → _components/department-list
-- [x] members MemberManager → _components/member-manager
-- [x] page.tsx importları güncelle
+### 1.4 UI — gösterim
+- [ ] employees/[id] detay sayfasında özlük bilgileri kartları
+- [ ] profile sayfasında çalışanın kendi özlük verisi (bazıları salt-okunur)
 
-### Faz 1 doğrulama ✅
-- [x] `npm run build` temiz geçti (lint hataları önceden var olan stil sorunları)
+## Tasarım iyileştirmeleri
 
-## FAZ 2 — Şişkin sayfaları böl
-- [x] payroll (680 → 78) — use-payroll, toolbar, stats, table, salary-table, salary-edit-dialog
-- [x] hr/attendance-requests (479 → ~95) — hook, types, approval-timeline, request-card
-- [x] hr/approvals (459 → ~105) — hook, types, timeline, request-card, empty-state
-- [x] hr/leave-requests (424 → ~90) — hook, types, timeline, request-card
-- [x] employees/[id]/edit (457 → ~115) — use-employee-edit, profile-fields, shift-work-fields
-- [x] employees/new (432 → ~90) — use-new-employee, personal-info-fields, task-auth-fields, success-card
-- [x] employee-actions-menu / employee-filters → employees/_components
-- [x] Her sayfadan sonra `tsc --noEmit`, sonda tam `npm run build` (exit 0)
+### 2.1 Analitik dashboard (recharts — zaten kurulu)
+- [ ] Dashboard'a grafik kartları: headcount (departman dağılımı),
+      izin/devamsızlık trendi, bordro maliyeti, işe giriş/çıkış trendi
+- [ ] API: dashboard istatistik endpoint(ler)i (companyId filtreli)
 
-## Review
+### 2.2 Organizasyon şeması
+- [ ] Departman → yönetici → çalışan görsel hiyerarşi sayfası
 
-**Sonuç:** Tüm refactor tamam, `npm run build` temiz (exit 0), 0 kalıntı referans.
+### 2.3 UI cilası
+- [ ] Tutarlı boş durum (empty state) ve skeleton bileşenleri
+- [ ] Detay/profil sayfalarının görsel düzeni
 
-### Faz 1 — Yapısal
-- Root'taki 4 ölü dosya silindi (`auth.ts`, `auth.config.ts` = kullanılmayan v5 scaffolding;
-  `proxy.ts` = Next'in yüklemediği yanlış-adlı middleware; `git` = boş dosya).
-- `authOptions` route dosyasından `lib/auth-options.ts`'e taşındı (anti-pattern giderildi);
-  route incelendi, `lib/auth.ts` güncellendi.
-- `components/` gruplandı: `layout/` (sidebar, breadcrumb, bell, mode-toggle, lang),
-  `shared/` (error-message). `ui/` shadcn için yerinde kaldı.
-- `Component/` → `_components/`, dosyalar kebab-case + anlamlı isim (login-form, register-form vb.).
+## Doğrulama standardı (her adım)
+`npx tsc --noEmit` temiz · `npm run build` exit 0 · `npm test` geçer ·
+multi-tenant companyId izolasyonu korunur.
 
-### Faz 2 — Componentleştirme (6 sayfa, ~2930 satır → ~580 satır page + temiz bileşenler)
-- Her sayfa: veri/state mantığı route-local `use-*.ts` hook'una, sunum parçaları ayrı
-  bileşenlere bölündü. page.tsx ince orkestratör.
-- Mevcut yardımcılar yeniden kullanıldı (`payroll-engine`, `status-helpers`, `@/lib/api`).
-- Yan temizlik: kullanılmayan `useRouter`, `createEmployeeSchema`, ölü ikon importları kaldırıldı;
-  onay timeline'larında prop-mutasyonu yapan `.sort()` → `.slice().sort()`.
+## Backlog'a ertelenen (Veri & Uyum hattı, sonra)
+- Belge yönetimi (ücretli depolama gerektirir — beklemede)
+- Kıdem & ihbar tazminatı motoru
+- KVKK & denetim logu
+- İSG & eğitim takibi
 
-### Davranış garantisi
-- Multi-tenant `companyId` filtreleri, API mantığı, Türkçe metinler, hesaplama motorları,
-  DB şeması: **hiç dokunulmadı**. Yalnızca dosya organizasyonu + bileşen ayrımı.
+## Review — tamamlandı (branch: feature/employee-personal-info)
 
-## FAZ 3 — Güvenlik & kalite (full yetkiyle, commit'lendi)
-- [x] **Güvenlik:** `app/api/debug/seed` (auth'suz, tüm tenant'lara yazan public GET) silindi.
-- [x] **Düzeltme:** `proxy.ts` geri alındı — Next 16'da middleware convention'ı "proxy";
-      yanlışlıkla silinmişti, route koruması zaten aktifti (`ƒ Proxy (Middleware)`).
-- [x] **confirm() → AlertDialog:** `ConfirmProvider` + `useConfirm()` (5 çağrı yeri).
-- [x] **Lint:** `prefer-const` auto-fix'leri (payroll-engine, dashboard page).
+**Faz 1 — Çalışan özlük verisi ✅**
+- Schema: Employee'ye 25 nullable özlük alanı + 7 enum; migration kaydı
+  (db push ile uygulandı, mevcut veri korundu, geçmişe işlendi).
+- Doğrulama: `lib/validators.ts` saf TC Kimlik checksum + TR IBAN mod-97;
+  `getPersonalInfoSchema` + `buildPersonalInfoData` (boş→null, tarih dönüşümü);
+  `pickOzlukData` (gösterim için). 10 birim test.
+- Form: paylaşılan `OzlukFields` (Accordion bölümleri, native-select + register,
+  inline-component yok); yeni + düzenleme formuna eklendi; API POST/PATCH
+  entegrasyonu, PATCH'te TC/IBAN/email doğrulaması.
+- Gösterim: `OzlukDisplay` paylaşılan bileşeni; yeni çalışan detay sayfası
+  `/dashboard/employees/[id]` (HR korumalı); profil sayfasında self-servis.
 
-### Commit'ler (branch: refactor/cleanup-and-componentization)
-1. `refactor: dosya yapısını temizle ve şişkin sayfaları component'lere böl`
-2. `fix(security): debug/seed kaldır, proxy korumasını geri al`
-3. `refactor: native confirm() yerine AlertDialog onay akışı`
-4. `chore: lint prefer-const otomatik düzeltmeleri`
+**Faz 2 — Tasarım ✅**
+- Analitik dashboard: `getCompanyStats` (paralel sorgular) + `HrAnalytics`
+  (recharts: departman bar, işe giriş alan grafiği, izin durumu & çalışma şekli
+  donut'ları, 4 stat kartı) — yalnızca yöneticilere.
+- Organizasyon şeması: `/dashboard/org-chart` (departman→yönetici→üye).
 
-### Kalan işler → `tasks/backlog.md`
-`any` tip sıkılaştırma, kalan ~24 sayfa, test altyapısı, onay timeline birleştirme.
+**Doğrulama:** `tsc --noEmit` temiz · `npm run build` exit 0 · `npm test` 39/39 ·
+`npm run lint` 0 error (5 kasıtlı exhaustive-deps uyarısı) · multi-tenant korundu.

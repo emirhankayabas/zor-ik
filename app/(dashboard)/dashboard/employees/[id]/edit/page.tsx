@@ -9,6 +9,7 @@ import { Form } from "@/components/ui/form";
 import { useEmployeeEdit } from "./_components/use-employee-edit";
 import { ProfileFields } from "./_components/profile-fields";
 import { ShiftWorkFields } from "./_components/shift-work-fields";
+import { OzlukFields } from "../../_components/ozluk-fields";
 
 export default function EditEmployeePage({
   params,
@@ -57,7 +58,9 @@ export default function EditEmployeePage({
 
       <div className="flex items-center justify-between px-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("editTitle")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("editTitle")}
+          </h1>
           <p className="text-sm text-muted-foreground">{t("editSubtitle")}</p>
         </div>
         <Button
@@ -86,6 +89,7 @@ export default function EditEmployeePage({
             selectedWorkingDays={selectedWorkingDays}
             toggleWorkingDay={toggleWorkingDay}
           />
+          <OzlukFields form={form} />
 
           <div className="flex justify-end pb-4">
             <Button type="submit" disabled={isSaving}>

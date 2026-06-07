@@ -1,4 +1,5 @@
 import React from "react";
+import { Logo } from "@/components/shared/logo";
 
 interface Props {
   children: React.ReactNode;
@@ -9,10 +10,12 @@ export default function AuthLayout({ children }: Props) {
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
       <div className="hidden lg:flex flex-col relative overflow-hidden bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="relative flex flex-col justify-between h-full p-12 text-white">
-          <div className="flex items-center gap-3 text-xl font-bold tracking-tight animate-[fadeIn_0.6s_ease-out]">
-            <div>
-              Zor IK <span className="opacity-60 font-light text-lg">ID</span>
-            </div>
+          <div className="animate-[fadeIn_0.6s_ease-out]">
+            <Logo
+              size={34}
+              priority
+              textClassName="text-xl text-white"
+            />
           </div>
 
           <div className="space-y-4 max-w-xl animate-[fadeIn_0.8s_ease-out_0.2s] fill-mode-[forwards]">

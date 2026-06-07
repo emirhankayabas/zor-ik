@@ -18,6 +18,7 @@ import {
   Clock,
   Shield,
   CalendarRange,
+  Network,
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/shared/logo";
 import { isHrUser, canManageCompany } from "@/lib/access";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -77,6 +79,11 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           title: t("departments"),
           href: `/dashboard/departments`,
           icon: Building2,
+        },
+        {
+          title: t("orgChart"),
+          href: `/dashboard/org-chart`,
+          icon: Network,
         },
         {
           title: t("payroll"),
@@ -121,26 +128,26 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       items: [
         ...(isHrUser(session?.user)
           ? [
-            {
-              title: t("hrApprovals"),
-              href: `/dashboard/hr/approvals`,
-              icon: CheckCircle2,
-            },
-          ]
+              {
+                title: t("hrApprovals"),
+                href: `/dashboard/hr/approvals`,
+                icon: CheckCircle2,
+              },
+            ]
           : []),
         ...(canManageCompany(session?.user)
           ? [
-            {
-              title: t("leaveApprovals"),
-              href: `/dashboard/hr/leave-requests`,
-              icon: CheckCircle2,
-            },
-            {
-              title: t("correctionApprovals"),
-              href: `/dashboard/hr/attendance-requests`,
-              icon: CheckCircle2,
-            },
-          ]
+              {
+                title: t("leaveApprovals"),
+                href: `/dashboard/hr/leave-requests`,
+                icon: CheckCircle2,
+              },
+              {
+                title: t("correctionApprovals"),
+                href: `/dashboard/hr/attendance-requests`,
+                icon: CheckCircle2,
+              },
+            ]
           : []),
       ],
     },
@@ -152,7 +159,8 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
           href: `/dashboard/settings`,
           icon: Settings,
         },
-        ...(session?.user?.role === "COMPANY_ADMIN" || session?.user?.role === "SUPER_ADMIN"
+        ...(session?.user?.role === "COMPANY_ADMIN" ||
+        session?.user?.role === "SUPER_ADMIN"
           ? [
               {
                 title: t("companySettings"),
@@ -178,12 +186,10 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       className="border-r border-border/50"
     >
       <SidebarHeader>
-        <div className="flex items-center gap-3">
-          <div className="flex aspect-square size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Building2 className="size-4" />
-          </div>
+        <div className="flex items-center gap-2.5 p-2 pb-0">
+          <Logo size={26} showText={false} priority />
           <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-bold text-sm truncate">Zor IK</span>
+            <span className="font-bold text-sm truncate">Zor İK</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-tight font-medium">
               {t("unitManagement")}
             </span>
@@ -210,10 +216,13 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                         className={cn(
                           "h-9 px-3 transition-all duration-200 hover:bg-accent/50",
                           pathname === item.href &&
-                          "bg-primary/5 text-primary hover:bg-primary/10",
+                            "bg-primary/5 text-primary hover:bg-primary/10",
                         )}
                       >
-                        <Link href={item.href} className="flex items-center gap-3">
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-3"
+                        >
                           <item.icon
                             className={cn(
                               "size-4 shrink-0",
@@ -222,7 +231,9 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                                 : "text-muted-foreground",
                             )}
                           />
-                          <span className="text-sm font-medium">{item.title}</span>
+                          <span className="text-sm font-medium">
+                            {item.title}
+                          </span>
                           {pathname === item.href && (
                             <div className="ml-auto size-1.5 rounded-full bg-primary group-data-[collapsible=icon]:hidden" />
                           )}

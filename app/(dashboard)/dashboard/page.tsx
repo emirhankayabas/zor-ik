@@ -22,6 +22,9 @@ import Link from "next/link";
 import { getTranslations, getLocale } from "next-intl/server";
 import { tr, enUS } from "date-fns/locale";
 import { formatDateLocale } from "@/lib/status-helpers";
+import { canManageCompany } from "@/lib/access";
+import { getCompanyStats } from "@/lib/dashboard-stats";
+import { HrAnalytics } from "./_components/hr-analytics";
 
 export default async function DashboardPage() {
   const session = await getServerAuthSession();
@@ -55,6 +58,12 @@ export default async function DashboardPage() {
   });
 
   const now = new Date();
+
+  // Company-wide analytics for managers/HR/admin.
+  const showHrAnalytics = canManageCompany(session.user);
+  const companyStats = showHrAnalytics
+    ? await getCompanyStats(session.user.companyId)
+    : null;
 
   // Filter approved leaves
   const approvedLeaves =
@@ -114,6 +123,13 @@ export default async function DashboardPage() {
           </CardDescription>
         </div>
       </div>
+
+      {companyStats && (
+        <>
+          <HrAnalytics stats={companyStats} locale={locale} />
+          <div className="h-px bg-border" />
+        </>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Main Stats */}

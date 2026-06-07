@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
 import { getCompanyId } from '@/lib/auth';
-import { getEmployeeSchema } from '@/lib/validations/employee';
+import { getEmployeeSchema, buildPersonalInfoData } from '@/lib/validations/employee';
 import { handleApiError } from '@/lib/api-response';
 import { getTranslations } from 'next-intl/server';
 import { calculateSeniorityQuota } from '@/lib/leave-engine';
@@ -97,6 +97,8 @@ export async function POST(request: NextRequest) {
                     annualLeaveQuota: quota,
                     totalLeftLeaveDays: quota, // Initial remaining days = initial quota
                     workingDays: validatedData.workingDays || [1, 2, 3, 4, 5],
+                    // Özlük (personnel-file) fields — empty → null, dates → Date
+                    ...buildPersonalInfoData(validatedData),
                 },
                 include: {
                     user: {

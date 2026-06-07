@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import { Logo } from "@/components/shared/logo";
 
 export default async function Footer() {
   return (
@@ -6,11 +7,8 @@ export default async function Footer() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="col-span-2">
-            <Link href={``} className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
-                Z
-              </div>
-              <span className="font-bold text-xl tracking-tight">Zor İK</span>
+            <Link href={``} className="inline-block mb-4">
+              <Logo size={32} textClassName="text-xl" />
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
               Kurumsal İK süreçlerinizi modern, hızlı ve güvenli bir platformda
