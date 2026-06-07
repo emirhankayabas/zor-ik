@@ -10,6 +10,7 @@ import { useNewEmployee } from "./_components/use-new-employee";
 import { PersonalInfoFields } from "./_components/personal-info-fields";
 import { TaskAuthFields } from "./_components/task-auth-fields";
 import { SuccessCard } from "./_components/success-card";
+import { OzlukFields } from "../_components/ozluk-fields";
 
 export default function NewEmployeePage() {
   const t = useTranslations("employees");
@@ -54,6 +55,7 @@ export default function NewEmployeePage() {
           selectedWorkingDays={selectedWorkingDays}
           toggleWorkingDay={toggleWorkingDay}
         />
+        <OzlukFields form={form} />
 
         {error && (
           <Alert variant="destructive">

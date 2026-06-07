@@ -168,9 +168,12 @@ export default async function EmployeesPage({
                         </Avatar>
                         <div className="flex flex-col">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm">
+                            <Link
+                              href={`/dashboard/employees/${employee.id}`}
+                              className="font-bold text-sm hover:text-primary hover:underline"
+                            >
                               {employee.user.name}
-                            </span>
+                            </Link>
                             {!employee.user.isActive && (
                               <Badge variant="outline" className="text-[10px] px-1 py-0 border-destructive/40 text-destructive">
                                 Pasif

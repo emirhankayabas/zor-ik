@@ -1,5 +1,15 @@
 # Kaldığım Yer (devam notu)
 
+## Yeni tur — Çalışan özlük + tasarım (branch: feature/employee-personal-info)
+Veri & Uyum hattı Faz 1 + tasarım tamamlandı (detay: tasks/todo.md Review).
+- Özlük veri modeli (25 alan + 7 enum), TC/IBAN doğrulama (+test), paylaşılan
+  form (OzlukFields) ve gösterim (OzlukDisplay), çalışan detay sayfası.
+- HR analitik dashboard (recharts) + organizasyon şeması.
+- Sıradaki backlog: belge yönetimi (ücretli depo), kıdem/ihbar tazminatı,
+  KVKK/denetim logu, İSG/eğitim.
+
+---
+
 Branch: `refactor/cleanup-and-componentization` (main'e PR bekliyor)
 
 ## Bitti (commit + push'landı)
