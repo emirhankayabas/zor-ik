@@ -52,7 +52,8 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
 
   const fieldName = (n: string) => n as Path<T>;
   const errorFor = (n: string) => {
-    const message = (errors as Record<string, { message?: unknown }>)[n]?.message;
+    const message = (errors as Record<string, { message?: unknown }>)[n]
+      ?.message;
     return message ? String(message) : null;
   };
 
@@ -62,7 +63,10 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
   ) => {
     const err = errorFor(field);
     return (
-      <div key={field} className={opts?.full ? "md:col-span-2 space-y-2" : "space-y-2"}>
+      <div
+        key={field}
+        className={opts?.full ? "md:col-span-2 space-y-2" : "space-y-2"}
+      >
         <Label htmlFor={field}>{t(`ozluk.${field}`)}</Label>
         <Input
           id={field}
@@ -91,7 +95,11 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
     return (
       <div key={field} className="space-y-2">
         <Label htmlFor={field}>{t(`ozluk.${field}`)}</Label>
-        <NativeSelect id={field} className="w-full" {...register(fieldName(field))}>
+        <NativeSelect
+          id={field}
+          className="w-full"
+          {...register(fieldName(field))}
+        >
           <option value="">{t("ozluk.selectPlaceholder")}</option>
           {values.map((v) => (
             <option key={v} value={v}>
@@ -115,7 +123,11 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
         textField("birthDate", { type: "date" }),
         textField("birthPlace"),
         enumField("gender", GENDER_VALUES, "genderOptions"),
-        enumField("maritalStatus", MARITAL_STATUS_VALUES, "maritalStatusOptions"),
+        enumField(
+          "maritalStatus",
+          MARITAL_STATUS_VALUES,
+          "maritalStatusOptions",
+        ),
         textField("nationality", { placeholder: "TC" }),
         enumField("bloodType", BLOOD_TYPE_VALUES, "bloodTypeOptions"),
       ],
@@ -162,8 +174,16 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
       title: t("ozluk.sectionEducation"),
       desc: t("ozluk.sectionEducationDesc"),
       fields: [
-        enumField("educationLevel", EDUCATION_LEVEL_VALUES, "educationLevelOptions"),
-        enumField("militaryStatus", MILITARY_STATUS_VALUES, "militaryStatusOptions"),
+        enumField(
+          "educationLevel",
+          EDUCATION_LEVEL_VALUES,
+          "educationLevelOptions",
+        ),
+        enumField(
+          "militaryStatus",
+          MILITARY_STATUS_VALUES,
+          "militaryStatusOptions",
+        ),
       ],
     },
     {
@@ -172,7 +192,11 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
       title: t("ozluk.sectionEmployment"),
       desc: t("ozluk.sectionEmploymentDesc"),
       fields: [
-        enumField("employmentType", EMPLOYMENT_TYPE_VALUES, "employmentTypeOptions"),
+        enumField(
+          "employmentType",
+          EMPLOYMENT_TYPE_VALUES,
+          "employmentTypeOptions",
+        ),
         enumField("contractType", CONTRACT_TYPE_VALUES, "contractTypeOptions"),
         textField("contractStart", { type: "date" }),
         textField("contractEnd", { type: "date" }),
@@ -184,9 +208,13 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
   ];
 
   return (
-    <Accordion type="multiple" className="w-full rounded-xl border bg-card px-4">
+    <Accordion type="multiple" className="w-full  border bg-card">
       {sections.map((s) => (
-        <AccordionItem key={s.value} value={s.value} className="last:border-b-0">
+        <AccordionItem
+          key={s.value}
+          value={s.value}
+          className="last:border-b-0"
+        >
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-3 text-left">
               <div className="p-2 bg-primary/10 rounded-lg text-primary border border-primary/20">
@@ -194,7 +222,9 @@ export function OzlukFields<T extends FieldValues>({ form }: Props<T>) {
               </div>
               <div>
                 <p className="text-sm font-semibold">{s.title}</p>
-                <p className="text-xs text-muted-foreground font-normal">{s.desc}</p>
+                <p className="text-xs text-muted-foreground font-normal">
+                  {s.desc}
+                </p>
               </div>
             </div>
           </AccordionTrigger>

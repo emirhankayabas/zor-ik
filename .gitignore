@@ -42,4 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 .agent
+.agents
+skills-lock.json
 .vercel

@@ -58,7 +58,9 @@ export default function EditEmployeePage({
 
       <div className="flex items-center justify-between px-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("editTitle")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("editTitle")}
+          </h1>
           <p className="text-sm text-muted-foreground">{t("editSubtitle")}</p>
         </div>
         <Button

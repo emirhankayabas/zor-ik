@@ -63,7 +63,7 @@ export default function HomeContent() {
         {/* Decorative background */}
         <div
           aria-hidden
-          className="absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_60%,transparent_100%)]"
+          className="absolute inset-0 -z-10 mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_60%,transparent_100%)]"
           style={{
             backgroundImage:
               "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
@@ -80,7 +80,12 @@ export default function HomeContent() {
             {/* Logo mark with glow */}
             <div className="relative mx-auto flex w-fit items-center justify-center animate-in fade-in zoom-in-50 duration-700">
               <div className="absolute size-28 rounded-full bg-primary/20 blur-2xl" />
-              <Logo size={84} showText={false} priority markClassName="relative drop-shadow-xl" />
+              <Logo
+                size={84}
+                showText={false}
+                priority
+                markClassName="relative drop-shadow-xl"
+              />
             </div>
 
             <div className="inline-flex items-center gap-2 rounded-full border bg-background/60 px-3 py-1 text-sm font-medium text-primary backdrop-blur animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -114,21 +119,26 @@ export default function HomeContent() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 pt-8 text-sm font-medium text-muted-foreground">
-              {["Kredi kartı gerekmez", "Sınırsız kullanıcı", "7/24 Teknik destek"].map(
-                (item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 text-primary" />
-                    {item}
-                  </div>
-                ),
-              )}
+              {[
+                "Kredi kartı gerekmez",
+                "Sınırsız kullanıcı",
+                "7/24 Teknik destek",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 text-primary" />
+                  {item}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Stats strip */}
           <div className="mx-auto mt-20 grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl border bg-border md:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className="bg-background px-6 py-8 text-center">
+              <div
+                key={s.label}
+                className="bg-background px-6 py-8 text-center"
+              >
                 <div className="text-3xl font-extrabold text-foreground md:text-4xl">
                   {s.value}
                 </div>
@@ -164,7 +174,9 @@ export default function HomeContent() {
                   <f.icon className="size-6 transition-transform group-hover:scale-110" />
                 </div>
                 <h3 className="mb-3 text-xl font-bold">{f.title}</h3>
-                <p className="leading-relaxed text-muted-foreground">{f.desc}</p>
+                <p className="leading-relaxed text-muted-foreground">
+                  {f.desc}
+                </p>
               </div>
             ))}
           </div>

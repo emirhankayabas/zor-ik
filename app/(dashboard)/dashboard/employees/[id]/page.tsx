@@ -70,7 +70,12 @@ export default async function EmployeeDetailPage({
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto px-4 pb-12">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" asChild className="-ml-2 text-muted-foreground hover:text-foreground">
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="-ml-2 text-muted-foreground hover:text-foreground"
+        >
           <Link href="/dashboard/employees">
             <ArrowLeft className="mr-2 size-4" /> {tCommon("back")}
           </Link>
@@ -93,7 +98,10 @@ export default async function EmployeeDetailPage({
               <CardTitle className="text-lg flex items-center gap-2">
                 {employee.user.name}
                 {!employee.user.isActive && (
-                  <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] border-destructive/40 text-destructive"
+                  >
                     {t("deactivate")}
                   </Badge>
                 )}
@@ -105,16 +113,35 @@ export default async function EmployeeDetailPage({
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-          <Info icon={<Building2 className="size-4" />} label={tCommon("department")} value={employee.department?.name || "—"} />
-          <Info icon={<Briefcase className="size-4" />} label={tCommon("position")} value={employee.position || "—"} />
-          <Info icon={<CalendarDays className="size-4" />} label={t("hireDate")} value={formatDateLocale(employee.hireDate.toISOString(), locale)} />
-          <Info icon={<UserCircle className="size-4" />} label={t("systemRole")} value={roleLabel} />
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 pb-4">
+          <Info
+            icon={<Building2 className="size-4" />}
+            label={tCommon("department")}
+            value={employee.department?.name || "—"}
+          />
+          <Info
+            icon={<Briefcase className="size-4" />}
+            label={tCommon("position")}
+            value={employee.position || "—"}
+          />
+          <Info
+            icon={<CalendarDays className="size-4" />}
+            label={t("hireDate")}
+            value={formatDateLocale(employee.hireDate.toISOString(), locale)}
+          />
+          <Info
+            icon={<UserCircle className="size-4" />}
+            label={t("systemRole")}
+            value={roleLabel}
+          />
         </CardContent>
       </Card>
 
-      {/* Özlük — HR görünümünde tüm bölümler (boşlar dahil) */}
-      <OzlukDisplay data={pickOzlukData(employee)} locale={locale} hideEmptySections={false} />
+      <OzlukDisplay
+        data={pickOzlukData(employee)}
+        locale={locale}
+        hideEmptySections={false}
+      />
     </div>
   );
 }

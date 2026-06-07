@@ -41,7 +41,11 @@ const SECTIONS: {
       { key: "birthDate", kind: "date" },
       { key: "birthPlace", kind: "text" },
       { key: "gender", kind: "enum", optionsKey: "genderOptions" },
-      { key: "maritalStatus", kind: "enum", optionsKey: "maritalStatusOptions" },
+      {
+        key: "maritalStatus",
+        kind: "enum",
+        optionsKey: "maritalStatusOptions",
+      },
       { key: "nationality", kind: "text" },
       { key: "bloodType", kind: "enum", optionsKey: "bloodTypeOptions" },
     ],
@@ -75,15 +79,27 @@ const SECTIONS: {
     value: "education",
     icon: GraduationCap,
     fields: [
-      { key: "educationLevel", kind: "enum", optionsKey: "educationLevelOptions" },
-      { key: "militaryStatus", kind: "enum", optionsKey: "militaryStatusOptions" },
+      {
+        key: "educationLevel",
+        kind: "enum",
+        optionsKey: "educationLevelOptions",
+      },
+      {
+        key: "militaryStatus",
+        kind: "enum",
+        optionsKey: "militaryStatusOptions",
+      },
     ],
   },
   {
     value: "employment",
     icon: Briefcase,
     fields: [
-      { key: "employmentType", kind: "enum", optionsKey: "employmentTypeOptions" },
+      {
+        key: "employmentType",
+        kind: "enum",
+        optionsKey: "employmentTypeOptions",
+      },
       { key: "contractType", kind: "enum", optionsKey: "contractTypeOptions" },
       { key: "contractStart", kind: "date" },
       { key: "contractEnd", kind: "date" },
@@ -101,16 +117,22 @@ interface Props {
   hideEmptySections?: boolean;
 }
 
-export function OzlukDisplay({ data, locale, hideEmptySections = true }: Props) {
+export function OzlukDisplay({
+  data,
+  locale,
+  hideEmptySections = true,
+}: Props) {
   const t = useTranslations("employees");
 
-  const isEmpty = (v: string | null | undefined) => v === null || v === undefined || v === "";
+  const isEmpty = (v: string | null | undefined) =>
+    v === null || v === undefined || v === "";
 
   const renderValue = (f: FieldDef): string => {
     const raw = data[f.key];
     if (isEmpty(raw)) return "—";
     if (f.kind === "date") return formatDateLocale(raw as string, locale);
-    if (f.kind === "enum" && f.optionsKey) return t(`ozluk.${f.optionsKey}.${raw}`);
+    if (f.kind === "enum" && f.optionsKey)
+      return t(`ozluk.${f.optionsKey}.${raw}`);
     return raw as string;
   };
 
@@ -130,18 +152,24 @@ export function OzlukDisplay({ data, locale, hideEmptySections = true }: Props) 
                 <s.icon className="size-4" />
               </div>
               <div>
-                <CardTitle className="text-base">{t(`ozluk.section${cap(s.value)}`)}</CardTitle>
+                <CardTitle className="text-base">
+                  {t(`ozluk.section${cap(s.value)}`)}
+                </CardTitle>
                 <CardDescription className="text-xs">
                   {t(`ozluk.section${cap(s.value)}Desc`)}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 pt-2">
+          <CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 pb-4">
             {s.fields.map((f) => (
               <div key={f.key} className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-[11px] text-muted-foreground">{t(`ozluk.${f.key}`)}</span>
-                <span className="text-sm font-medium break-words">{renderValue(f)}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {t(`ozluk.${f.key}`)}
+                </span>
+                <span className="text-sm font-medium wrap-break-word">
+                  {renderValue(f)}
+                </span>
               </div>
             ))}
           </CardContent>
